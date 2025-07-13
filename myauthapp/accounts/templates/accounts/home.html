@@ -1,30 +1,40 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 
 {% block title %}Главная{% endblock %}
-{% block header %}Калькулятор Ба Цзы{% endblock %}
-
+{% block header %}
+    Калькулятор Ба Цзы
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+{% endblock %}
+    
 {% block content %}
 {% if user.is_authenticated %}
-
-    <p>Сегодня: <strong>{{ current_date }}</strong></p>
-
+    
+    <p>Сегодня: <strong>{{ current_date_show }}</strong></p>
+    
+    <!-- <script src="{% static 'js/script.js' %}"></script> -->
+    
+    
     <!-- Форма для даты -->
-    <div class="form-section">
+    <div class="container">
         <label>Введите дату рождения
-            <input type="date" id="birthdayInput" value="{{ current_date|default:'' }}" required>
+            <input type="date" id="birthdayInput" value="{{ current_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" required>
         </label>
         <div id="birthdayResult"></div>
     </div>
     
     <!-- Форма для города (блокируется пока не отправлена дата) -->
-    <div class="form-section">
+    <div class="container">
         <label for="citySelect">Введите город:</label>
-        <div class="dropdown-container">
-            <input type="text" id="citySearch" placeholder="Начните вводить..." 
-                autocomplete="off" >
-            <select id="citySelect" size="5" style="display: none;">
-                <!-- Варианты будут добавляться динамически -->
-            </select>
+        <div>
+            <input type="text" id="citySearch" placeholder="Начните вводить..." value="{{ user.city }}"
+                autocomplete="on" style="width: 100%; background-color: #eeeeee;">
+            </div>
+                <select id="citySelect" size="5" style="display: none;">
+                    <!-- Варианты будут добавляться динамически -->
+                </select>
+            <div>
         </div>
         <button id="submitCity" >Отправить город</button>
         <div id="cityResult"></div>
@@ -35,29 +45,53 @@
     </div>
     
 
-    <div class="form-section">
+    <div class="container">
         <label>Введите интересующую дату
-            <input type="date" id="ourdateInput" value="{{ current_date|default:'' }}" disabled required>
+            <input type="date" id="ourdateInput" value="{{ current_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" disabled required>
         </label>
-        <button id="submitOurdate">Отправить дату</button>
+        <!-- <button id="submitOurdate">Отправить дату</button> -->
         <div id="ourdateResult"></div>
     </div>
 
-    <div class="form-section">
+    <div class="container">
         <label for="methodSelect">Выберите метод расчета:</label>
-        <select id="methodSelect" style="width: 100%;
-                                    border: 2px solid #4a7b9d;
-                                    border-radius: 10px;
-                                    text-align: center; 
-                                    height: 40px; 
-                                    font-size: 16px;">
-            {% for method in methods %}
-                <option value="{{ forloop.counter0 }}" >{{ method }}</option>
-            {% endfor %}
-        </select>
+        <div>
+            <select id="methodSelect" style="width: 100%;
+                                            border: none;
+                                            background-color: #eeeeee;
+                                            border-radius: 10px;
+                                            text-align: center; 
+                                            height: 40px; 
+                                            font-size: 16px;
+                                        ">
+                {% for method in methods %}
+                    <option value="{{ forloop.counter0 }}" style="width: 100%;
+                                            max-width: var(--max-width);
+                                            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                                            font-size: 16px;
+                                            font-weight: bold;
+                                            color: #4e4d4d;
+                                            color-scheme: gray;
+                                            background-color: white;
+                                            box-shadow: #4e4d4d;
+                                            border-radius: 10px;
+                                            margin-top: 2px;
+                                        ">{{ method }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button>
         <div id="methodResult" class="mt-3"></div>
     </div>
+
+
+
+
+
+
+
+
+
 
     <script>
         window.complexData = {}
@@ -217,7 +251,7 @@
             
             // Активируем форму даты
             document.getElementById('ourdateInput').disabled = false;
-            document.getElementById('submitOurdate').disabled = false;
+            // document.getElementById('submitOurdate').disabled = false;
             
         } else {
             alert('Ошибка: ' + data.error);
@@ -232,9 +266,14 @@
             dateInput.value = new Date().toISOString().split('T')[0];
         }
     });
-
+    // Обработчик изменения даты и нажатия Enter
+    document.getElementById('ourdateInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            processOurdate();
+        }
+    });
     // Обработка даты
-    document.getElementById('submitOurdate').addEventListener('click', async () => {
+    async function processOurdate() {
         const ourdate = document.getElementById('ourdateInput').value;
         
         if (!window.complexData) {
@@ -271,7 +310,7 @@
         } else {
             alert('Ошибка: ' + data.error);
         }
-    });
+    }
 
         document.addEventListener('DOMContentLoaded', function() {
         const methodSelect = document.getElementById('methodSelect');
@@ -332,15 +371,11 @@
     </script>
 
 
-<style>
-.invalid-feedback {
-    color: #dc3545;
-    font-size: 0.875em;
-}
-.is-invalid {
-    border-color: #dc3545 !important;
-}
-</style>
+
+
+
+
+
 
     {% else %}
     <div style="text-align: center; margin: 30px 0;">

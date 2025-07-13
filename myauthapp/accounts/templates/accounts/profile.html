@@ -4,9 +4,33 @@
 {% block header %}Ваш профиль{% endblock %}
 
 {% block content %}
+<style>
+    input[type="text"] {    
+        width: 100%;
+        border: 1px;
+        background-color: #eeeeee;
+        border-color: #eeeeee;
+        border-radius: 10px;
+        text-align: center; 
+        height: 40px; 
+        font-size: 16px;
+    }
+    
+    input[type="email"] {    
+        width: 100%;
+        border: 1px;
+        background-color: #eeeeee;
+        border-color: #eeeeee;
+        border-radius: 10px;
+        text-align: center; 
+        height: 40px; 
+        font-size: 16px;
+    }
+</style>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Обновить профиль</button>
 </form>
 {% endblock %}
+

@@ -134,7 +134,9 @@ def home(request, cities=cities):
     methods = [" ", "ЛУННЫЕ ДВОРЦЫ", "ФЭЙ ТЭН БА ФА", "ЛИН ГУЙ БА ФА", 
                "ТАЙ ЯН БА ФА", "ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА"]
     context = {
-        'current_date': datetime.now().strftime("%d.%m.%Y"),
+        'title': 'Главная',
+        'current_date_show': datetime.now().strftime("%d.%m.%Y"),
+        'current_date': datetime.now().strftime("%Y-%m-%d"),
         'cities_json': json.dumps(cit), 
         'methods': methods, # Добавьте другие переменные, которые нужно передать в шаблон
     }
@@ -149,7 +151,8 @@ def process_birthday(request, calendar=calendar,
             birthday = data.get('birthday')
             print(birthday)
             try:
-                birthday = pd.to_datetime(birthday).strftime("%d.%m.%Y")
+                # birthday_vis = pd.to_datetime(birthday).strftime("%d.%m.%Y")
+                # print(birthday_vis)
                 if pd.to_datetime(birthday) < pd.to_datetime(seasons.loc[2, str(pd.to_datetime(birthday).year)]):
                     year_v = calendar[calendar['date']==pd.to_datetime(pd.to_datetime(birthday)-timedelta(days=51))]['years'].values[0]
                 else:
@@ -241,7 +244,7 @@ def city_search(request, cities=cities):
     """API для поиска городов"""
     try:
         query = request.GET.get('q', '').strip().lower()
-        
+       
         # 1. Получаем список городов из контекста (можно заменить на cache/db)
         cit = cities["Город"].values.tolist()
         
@@ -687,4 +690,30 @@ def profile(request):
     else:
         form = CustomUserChangeForm(instance=request.user)
     return render(request, 'accounts/profile.html', {'form': form})
+
+
+
+
+
+
+
+
+
+
+
+
+def index(request, cities=cities):
+    cit = cities["Город"].values.tolist()
+    print("Cities before JSON:", cit[:10])
+    methods = [" ", "ЛУННЫЕ ДВОРЦЫ", "ФЭЙ ТЭН БА ФА", "ЛИН ГУЙ БА ФА", 
+               "ТАЙ ЯН БА ФА", "ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА"]
+    context = {
+        'title': 'Главная',
+        'current_date_show': datetime.now().strftime("%d.%m.%Y"),
+        'current_date': datetime.now().strftime("%Y-%m-%d"),
+        'cities_json': json.dumps(cit), 
+        'methods': methods, # Добавьте другие переменные, которые нужно передать в шаблон
+    }
+    return render(request, 'accounts/index.html', context)
+
 
