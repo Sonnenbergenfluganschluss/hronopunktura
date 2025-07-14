@@ -1,33 +1,65 @@
 // static/js/script.js
 
 document.addEventListener('DOMContentLoaded', function() {
-    window.complexData = {};
-    const savedData = sessionStorage.getItem('complexData');
-    if (savedData) {
-        window.complexData = JSON.parse(savedData);
-    }
-
-    // Обработчик изменения даты и нажатия Enter
-    document.getElementById('birthdayInput')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            processBirthday();
-        }
-    });
+    // ... (инициализация complexData и других переменных)
 
     // Инициализация автодополнения городов
     initCityAutocomplete();
 
-    // Обработчики для других элементов...
-    document.getElementById('submitCity')?.addEventListener('click', submitCityHandler);
-    document.getElementById('ourdateInput')?.addEventListener('keypress', ourDateKeypressHandler);
-    document.getElementById('submitMethod')?.addEventListener('click', submitMethodHandler);
-    
-    // Если Django не передал дату, используем текущую
-    const dateInput = document.getElementById('ourdateInput');
-    if (dateInput && !dateInput.value) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-    }
+    // Настройка обработчиков с автоматическим фокусом
+    setupInputHandlersWithAutoFocus();
 });
+
+function setupInputHandlersWithAutoFocus() {
+    // 1. Обработчик для даты рождения
+    const birthdayInput = document.getElementById('birthdayInput');
+    // birthdayInput?.addEventListener('change', async function() {
+    //     await processBirthday();
+    //     if (window.complexData.birthday) {
+    //         document.getElementById('citySearch').focus();
+    //     }
+    // });
+    birthdayInput?.addEventListener('keypress', async function(e) {
+        if (e.key === 'Enter') {
+            await processBirthday();
+            if (window.complexData.birthday) {
+                document.getElementById('citySearch').focus();
+            }
+        }
+    });
+
+    // 2. Обработчик для города (только по Enter)
+    const citySearch = document.getElementById('citySearch');
+    citySearch?.addEventListener('keypress', async function(e) {
+        if (e.key === 'Enter' && this.value) {
+            await submitCityHandler();
+            if (window.complexData.current_time) {
+                document.getElementById('ourdateInput').focus();
+            }
+        }
+    });
+
+    // 3. Обработчик для интересующей даты
+    const ourdateInput = document.getElementById('ourdateInput');
+    // ourdateInput?.addEventListener('change', async function() {
+    //     await processOurdate();
+    //     if (window.complexData.our_date) {
+    //         document.getElementById('methodSelect').focus();
+    //     }
+    // });
+    ourdateInput?.addEventListener('keypress', async function(e) {
+        if (e.key === 'Enter') {
+            await processOurdate();
+            if (window.complexData.our_date) {
+                document.getElementById('methodSelect').focus();
+            }
+        }
+    });
+
+    // 4. Обработчик для метода расчета (автоотправка)
+    const methodSelect = document.getElementById('methodSelect');
+    methodSelect?.addEventListener('change', submitMethodHandler);
+}
 
 // Функция обработки даты рождения
 async function processBirthday() {
@@ -162,11 +194,6 @@ async function submitCityHandler() {
     }
 }
 
-// function timeCheckboxHandler() {
-//     window.complexData.current_time = this.checked ? data.admin_time : data.solar_time;
-//     console.log('Текущее время:', window.complexData.current_time);
-//     document.getElementById('checkTime').innerHTML = `<div>Рассчетное время ${window.complexData.current_time}</div>`;
-// }
 
 function ourDateKeypressHandler(e) {
     if (e.key === 'Enter') {

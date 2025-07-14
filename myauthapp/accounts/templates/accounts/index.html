@@ -11,10 +11,7 @@
 {% block content %}
 {% if user.is_authenticated %}
     
-    <p>Сегодня: <strong>{{ current_date_show }}</strong></p>
-    
-    <!-- <script src="{% static 'js/script.js' %}"></script> -->
-    
+    <p style="padding-left: 20px;">Сегодня: <strong>{{ current_date_show }}</strong></p>
     
     <!-- Форма для даты -->
     <div class="container">
@@ -36,7 +33,7 @@
                 </select>
             <div>
         </div>
-        <button id="submitCity" >Отправить город</button>
+        <!-- <button id="submitCity" >Отправить город</button> -->
         <div id="cityResult"></div>
         <label>
             <input type="checkbox" id="changeTime"> Нужен расчёт по административному времени
@@ -80,7 +77,7 @@
                 {% endfor %}
             </select>
         </div>
-        <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button>
+        <!-- <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button> -->
         <div id="methodResult" class="mt-3"></div>
     </div>
         

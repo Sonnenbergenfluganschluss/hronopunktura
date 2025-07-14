@@ -1,36 +1,41 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>{% block title %}My Auth App{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
 </head>
+
 <body>
     <div class="container">
         <div class="auth-links">
             {% if user.is_authenticated %}
-                Привет, {{ user.username }}! 
-                <a href="{% url 'home' %}">На главную</a>
-                <a href="{% url 'profile' %}">Профиль</a>
-                <a href="{% url 'logout' %}">Выйти</a>
+            Привет, {{ user.username }}!
+            <a href="{% url 'home' %}">На главную</a>
+            <a href="{% url 'profile' %}">Профиль</a>
+            <a href="{% url 'logout' %}">Выйти</a>
             {% else %}
-                <a href="{% url 'login' %}">Войти</a>
-                <a href="{% url 'register' %}">Регистрация</a>
-                <a href="{% url 'password_reset' %}">Забыли пароль?</a>
+            <a href="{% url 'login' %}">Войти</a>
+            <a href="{% url 'register' %}">Регистрация</a>
+            <a href="{% url 'password_reset' %}">Забыли пароль?</a>
             {% endif %}
         </div>
-        
-        <h1>{% block header %}My Auth App{% endblock %}</h1>
-        
+        <div class="container">
+            <h1>{% block header %}My Auth App{% endblock %}</h1>
+        </div>
+
+
         {% if messages %}
         <ul class="messages">
             {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                {% endfor %}
         </ul>
         {% endif %}
-        
+
         {% block content %}{% endblock %}
     </div>
 </body>
+
 </html>

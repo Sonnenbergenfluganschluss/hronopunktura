@@ -11,10 +11,7 @@
 {% block content %}
 {% if user.is_authenticated %}
     
-    <p>Сегодня: <strong>{{ current_date_show }}</strong></p>
-    
-    <!-- <script src="{% static 'js/script.js' %}"></script> -->
-    
+    <p style="padding-left: 20px;">Сегодня: <strong>{{ current_date_show }}</strong></p>
     
     <!-- Форма для даты -->
     <div class="container">
@@ -36,7 +33,7 @@
                 </select>
             <div>
         </div>
-        <button id="submitCity" >Отправить город</button>
+        <!-- <button id="submitCity" >Отправить город</button> -->
         <div id="cityResult"></div>
         <label>
             <input type="checkbox" id="changeTime"> Нужен расчёт по административному времени
@@ -80,306 +77,27 @@
                 {% endfor %}
             </select>
         </div>
-        <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button>
+        <!-- <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button> -->
         <div id="methodResult" class="mt-3"></div>
     </div>
-
-
-
-
-
-
-
-
-
-
+        
     <script>
-        window.complexData = {}
-        const savedData = sessionStorage.getItem('complexData');
-        if (savedData) {
-        window.complexData = JSON.parse(savedData);
-    }
-
-
-    // Обработчик изменения даты и нажатия Enter
-    document.getElementById('birthdayInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            processBirthday();
-        }
-    });
-    // Функция обработки даты рождения
-    async function processBirthday() {
-        const birthday = document.getElementById('birthdayInput').value;
-        
-        // Проверка, что дата введена
-        if (!birthday) return;
-        
-        try {
-            const response = await fetch("{% url 'process_birthday' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({ birthday })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                document.getElementById('birthdayResult').innerHTML = `<p>${data.birthday_table}</p>`;
-                
-                // Сохраняем данные для последующих вычислений
-                window.complexData = {birthday: data.birthday_result};
-            } else {
-                alert('Ошибка: ' + data.error);
-            }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            alert('Произошла ошибка при отправке данных');
-        }
-    }
-
-    // Автодополнение городов
-    document.addEventListener('DOMContentLoaded', function() {
-        const cities = JSON.parse('{{ cities_json|safe }}');
-        console.log('Загружено городов:', cities.length);
-        const searchInput = document.getElementById('citySearch');
-        const citySelect = document.getElementById('citySelect');
-        const submitCityBtn = document.getElementById('submitCity');
-        let selectedCity = null;
-
-        // Активация при вводе текста
-        searchInput.addEventListener('input', function() {
-            console.log('Ввод:', this.value);
-            const searchTerm = this.value.toLowerCase();
-            citySelect.innerHTML = '';
-
-            // Фильтрация городов (исправленная версия)
-            const filtered = cities.filter(city => 
-                city.toLowerCase().includes(searchTerm)
-            ).slice(0, 15);
-
-            if (filtered.length > 0) {
-                filtered.forEach(city => {
-                    const option = document.createElement('option');
-                    option.value = city;
-                    option.textContent = city;
-                    citySelect.appendChild(option);
-                });
-                citySelect.style.display = 'block';
-                submitCityBtn.disabled = false;
-            } else {
-                citySelect.style.display = 'none';
-                submitCityBtn.disabled = true;
-            }
-        });
-
-
-        // Выбор города из списка
-        citySelect.addEventListener('click', function() {
-            if (this.selectedIndex >= 0) {
-                searchInput.value = this.options[this.selectedIndex].value;
-                selectedCity = searchInput.value;
-                this.style.display = 'none';
-            }
-        });
-
-        // Закрытие списка при клике вне его
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.dropdown-container')) {
-                citySelect.style.display = 'none';
-            }
-        });
-
-    });
-    
-    // отправка города
-    document.getElementById('submitCity').addEventListener('click', async () => {
-        const city = document.getElementById('citySearch').value;
-        
-        if (!city) {
-            alert('Пожалуйста, выберите город из списка');
-            return;
-        }
-
-        
-        // Добавляем данные из предыдущего запроса
-        const postData = { 
-            city,
-            ...window.complexData  // Распаковываем сохранённые данные
-        };
-        
-        const response = await fetch("{% url 'process_city' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify(postData)
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('cityResult').innerHTML = `
-                <p>
-                    <span class="rainbow-text">Текущее административное время:</span> 
-                    <span style= "color: #4a7b9d; font-size: 16px; font-weight: bold;">${data.admin_time}</span>
-                </p>               
-                <p>
-                    <span class="rainbow-text">Текущее солнечное время:</span> 
-                    <span style= "color: #4a7b9d; font-size: 16px; font-weight: bold;">${data.solar_time}</span>
-                </p>
-                <p style="font-size: 12px">Рассчет по умолчанию выполняется по солнечному времени.
-                    <br>Если нужен рассчет по времени административному, поставьте галочкуниже:</p>
-            `;
-            
-            
-            // Инициализируем переменную времени
-            window.complexData.current_time = data.solar_time;
-            console.log('window.complexData: ', window.complexData);
-            document.getElementById('checkTime').innerHTML = `<div>Рассчетное время ${window.complexData.current_time}</div>`;
-            
-            // Обработчик изменения чекбокса
-            document.getElementById('changeTime').addEventListener('change', function() {
-                window.complexData.current_time = this.checked ? data.admin_time : data.solar_time;
-                console.log('Текущее время:', window.complexData.current_time); // Для отладки
-                document.getElementById('checkTime').innerHTML = `<div>Рассчетное время ${window.complexData.current_time}</div>`;
-            });
-            console.log('window.complexData: ', window.complexData);
-            
-            // Активируем форму даты
-            document.getElementById('ourdateInput').disabled = false;
-            // document.getElementById('submitOurdate').disabled = false;
-            
-        } else {
-            alert('Ошибка: ' + data.error);
-        }
-
-    })
-
-    // Если Django не передал дату, используем текущую
-    document.addEventListener('DOMContentLoaded', function() {
-        const dateInput = document.getElementById('ourdateInput');
-        if (!dateInput.value) {
-            dateInput.value = new Date().toISOString().split('T')[0];
-        }
-    });
-    // Обработчик изменения даты и нажатия Enter
-    document.getElementById('ourdateInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            processOurdate();
-        }
-    });
-    // Обработка даты
-    async function processOurdate() {
-        const ourdate = document.getElementById('ourdateInput').value;
-        
-        if (!window.complexData) {
-            alert('window.complexData пуст');
-            return;
-        }
-        
-        // Формируем данные для отправки
-        const postData = {
-            ourdate: ourdate,
-            current_time: window.complexData.current_time
-        };       
-        
-        const response = await fetch("{% url 'process_our_date' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify(postData)
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('ourdateResult').innerHTML = `
-            <p>${data.our_date_table}</p>
-            <p>${data.str_result}</p>`;
-            
-            // Сохраняем данные для последующих вычислений
-            window.complexData.day_iero = data.day_iero;
-            window.complexData.our_date = data.our_date_result,
-            console.log('window.complexData: ', window.complexData);
-        } else {
-            alert('Ошибка: ' + data.error);
-        }
-    }
-
-        document.addEventListener('DOMContentLoaded', function() {
-        const methodSelect = document.getElementById('methodSelect');
-        const submitMethod = document.getElementById('submitMethod');
-        const methodResult = document.getElementById('methodResult');
-        
-        submitMethod.addEventListener('click', async function() {
-            const methodIndex = methodSelect.value;
-
-            if (!window.complexData) {
-                alert('window.complexData пуст');
-                return;
-            }
-
-            const postData = {
-                methodIndex: methodIndex,
-                ...window.complexData,
-            };           
-            console.log('postData: ', postData);
-            try {
-                const response = await fetch("{% url 'process_method' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify(postData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    methodResult.innerHTML = `
-                        <div class="alert alert-success">
-                            <h4>Метод: ${data.method}</h4>
-                            <div>${data.result}</div>
-                        </div>
-                    `;
-                } else {
-                    methodResult.innerHTML = `
-                        <div class="alert alert-danger">
-                            Ошибка: ${data.error}
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                methodResult.innerHTML = `
-                    <div class="alert alert-danger">
-                        Ошибка сети: ${error.message}
-                    </div>
-                `;
-            }
-        });
-    });
-
-    // Сохранение данных при перезагрузке страницы
-    sessionStorage.setItem('complexData', JSON.stringify(window.complexData));
+        // Передаем Django-переменные в JavaScript
+        window.processBirthdayUrl = "{% url 'process_birthday' %}";
+        window.processCityUrl = "{% url 'process_city' %}";
+        window.processOurDateUrl = "{% url 'process_our_date' %}";
+        window.processMethodUrl = "{% url 'process_method' %}";
+        window.csrfToken = "{{ csrf_token }}";
+        window.citiesJson = '{{ cities_json|safe }}';
     </script>
+    <script src="{% static 'js/script.js' %}"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
 
-
-
-
-
-
-
+    
     {% else %}
     <div style="text-align: center; margin: 30px 0;">
-        <p>Для доступа к системе требуется авторизация</p>
+        <p>Для доступа к системы требуется авторизация</p>
         <div style="margin-top: 20px;">
             <a href="{% url 'login' %}" style="display: inline-block; margin: 0 10px;">
                 <button>Войти</button>
@@ -389,6 +107,6 @@
             </a>
         </div>
     </div>
-{% endif %}
+    {% endif %}
 
 {% endblock %}
