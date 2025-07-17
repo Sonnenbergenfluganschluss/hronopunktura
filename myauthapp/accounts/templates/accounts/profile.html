@@ -32,6 +32,13 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
+        {% if active_tariff %}
+        <div>
+            <a href="{% url 'payments:tariff_list' %}" class="btn btn-primary">
+                Оформить подписку
+            </a>
+        </div>
+        {% endif %}
         <button type="submit">Обновить профиль</button>
     </form>
 </div>

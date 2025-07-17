@@ -11,6 +11,8 @@ import re
 import os
 import pytz
 from itertools import cycle
+from payments.models import Tariff
+
 
 animal = ["крыса", "бык", "тигр", "кролик", "дракон", "змея", "лошадь", "коза", "обезьяна", "петух", "собака", "свинья"]
 stihiya = ["дерево", "дерево", "огонь", "огонь", "почва", "почва", "металл", "металл", "вода", "вода"]
@@ -681,6 +683,7 @@ def register(request):
 
 @login_required
 def profile(request):
+    active_tariff = Tariff.objects.filter(is_active=True).first()
     if request.method == 'POST':
         form = CustomUserChangeForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
@@ -689,7 +692,11 @@ def profile(request):
             return redirect('profile')
     else:
         form = CustomUserChangeForm(instance=request.user)
-    return render(request, 'accounts/profile.html', {'form': form})
+    context = {
+        'active_tariff': active_tariff,
+        'form': form,
+    }
+    return render(request, 'accounts/profile.html', context)
 
 
 

@@ -1,0 +1,22 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Оплата подписки: {{ tariff.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="h2">{{ tariff.price }} ₽</p>
+                    <p>Срок: {{ tariff.duration_days }} дней</p>
+                    <a href="{% url 'payments:create_payment' tariff.id %}" class="btn btn-success btn-block mt-3">
+                        Перейти к оплате
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

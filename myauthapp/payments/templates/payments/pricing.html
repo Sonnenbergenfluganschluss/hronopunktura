@@ -1,0 +1,36 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+{% if user.is_authenticated %}
+{% csrf_token %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Выберите подписку</h2>
+    <div class="row">
+        {% for tariff in tariffs %}
+        <div class="col-md-4 mb-4">
+            <div class="card {% if forloop.first %}border-primary{% endif %} h-100">
+                <div class="card-header bg-{% if forloop.first %}primary text-white{% else %}light{% endif %}">
+                    <h4 class="my-0">{{ tariff.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <h1 class="card-title pricing-card-title">${{ tariff.price }}</h1>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        {% for feature in tariff.features.splitlines %}
+                        <li>{{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{% url 'payments:create-payment' tariff.id %}" class="btn btn-lg btn-block btn-outline-primary">
+                        Купить
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'payments:css/pricing.css' %}">
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Тарифы</h1>
+    <div class="row">
+        {% for tariff in tariffs %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 {% if tariff.is_active %}border-primary{% endif %}">
+                <div class="card-header bg-{% if tariff.is_active %}primary text-white{% else %}light{% endif %}">
+                    <h4 class="my-0">{{ tariff.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title pricing-card-title">
+                        {{ tariff.price }} ₽
+                        <small class="text-muted">/ {{ tariff.duration_days }} дней</small>
+                    </h2>
+                    <p>{{ tariff.description }}</p>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        <li>Полный доступ к сервису</li>
+                        <li>Техническая поддержка</li>
+                        <li>Обновления системы</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    {% if tariff.is_active %}
+                    <a href="{% url 'payments:create_payment' tariff.id %}" class="btn btn-lg btn-block btn-primary">
+                        Оформить подписку
+                    </a>
+                    {% else %}
+                    <button class="btn btn-lg btn-block btn-secondary" disabled>
+                        Недоступно
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

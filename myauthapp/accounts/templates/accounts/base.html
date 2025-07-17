@@ -5,6 +5,7 @@
 <head>
     <title>{% block title %}My Auth App{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 
 <body>
@@ -19,6 +20,9 @@
             <a href="{% url 'login' %}">Войти</a>
             <a href="{% url 'register' %}">Регистрация</a>
             <a href="{% url 'password_reset' %}">Забыли пароль?</a>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'tariff_list' %}">Тарифы</a>
+            </li>
             {% endif %}
         </div>
         <div class="container">

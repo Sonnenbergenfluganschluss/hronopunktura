@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
+    'payments',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -142,4 +143,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Для ра�
 CSRF_COOKIE_HTTPONLY = True
 CSRF_USE_SESSIONS = False
 
-
+YOOKASSA_SHOP_ID = '1127478'  # Найти в личном кабинете ЮKassa
+YOOKASSA_SECRET_KEY = 'test_RojrVAuhuf5dVwSYDkuy-AMITYoTJCXE49yeSPu7dSs'  # Тестовый или живой
