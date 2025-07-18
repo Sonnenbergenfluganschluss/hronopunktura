@@ -121,7 +121,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-   os.path.join(BASE_DIR, "accounts/templates/static"),
+   os.path.join(BASE_DIR, "accounts/static"),
    os.path.join(BASE_DIR, "payments/static"),
 ]
 
