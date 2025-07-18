@@ -2,7 +2,11 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // ... (инициализация complexData и других переменных)
-
+    window.complexData = {};
+    const savedData = sessionStorage.getItem('complexData');
+    if (savedData) {
+        window.complexData = JSON.parse(savedData);
+    }
     // Инициализация автодополнения городов
     initCityAutocomplete();
 
@@ -13,12 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupInputHandlersWithAutoFocus() {
     // 1. Обработчик для даты рождения
     const birthdayInput = document.getElementById('birthdayInput');
-    // birthdayInput?.addEventListener('change', async function() {
-    //     await processBirthday();
-    //     if (window.complexData.birthday) {
-    //         document.getElementById('citySearch').focus();
-    //     }
-    // });
     birthdayInput?.addEventListener('keypress', async function(e) {
         if (e.key === 'Enter') {
             await processBirthday();
@@ -175,7 +173,12 @@ async function submitCityHandler() {
         <br>Если нужен рассчет по времени административному, поставьте галочкуниже:</p>
         `;
         
-        window.complexData.current_time = data.solar_time;
+        if (complexData) {
+            window.complexData.current_time = data.solar_time;
+        }
+        else {
+            window.complexData = {'current_time':data.solar_time}
+        }
         console.log('window.complexData: ', window.complexData);
         document.getElementById('checkTime').innerHTML = `<div>Рассчетное время ${window.complexData.current_time}</div>`;
         
