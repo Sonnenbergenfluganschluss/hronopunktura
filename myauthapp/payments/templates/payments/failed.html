@@ -21,7 +21,7 @@
     <div class="d-flex justify-content-center gap-3">
         <a href="{% url 'profile' %}" class="btn btn-secondary">Вернуться в профиль</a>
         {% if tariff_id %}
-            <a href="{% url 'payments:create_payment' tariff_id %}" class="btn btn-primary">Попробовать снова</a>
+            <a href="{% url 'payments:create_payment' tariff_id %}" class="btn btn-secondary">Попробовать снова</a>
         {% endif %}
     </div>
 </div>

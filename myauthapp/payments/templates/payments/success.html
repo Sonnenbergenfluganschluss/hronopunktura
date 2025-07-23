@@ -10,11 +10,12 @@
         <p>Спасибо за покупку подписки. Ваш платеж был успешно обработан.</p>
         <hr>
         <p class="mb-0">
-            <strong>Тариф:</strong> {{ tariff.name }}<br>
-            <strong>Сумма:</strong> {{ amount }} ₽<br>
-            <strong>Статус:</strong> {{ payment.status }}
+            <strong>Тариф:</strong> {{ payment.tariff.name }}<br>
+            <strong>Сумма:</strong> {{ amount|default:payment.amount }} ₽<br>
+            <strong>Статус:</strong> {{ payment.status }}<br>
+            <strong>Дата окончания:</strong> {{ end_date|date:"d.m.Y" }}
         </p>
     </div>
-    <a href="{% url 'profile' %}" class="btn btn-primary">Перейти в профиль</a>
+    <a href="{% url 'profile' %}" class="btn btn-secondary">Перейти в профиль</a>
 </div>
 {% endblock %}

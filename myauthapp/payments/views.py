@@ -187,9 +187,8 @@ def payment_success(request):
                 subscription.save()
                 
                 return render(request, 'payments/success.html', {
-                    'tariff': payment.tariff,
-                    'end_date': subscription.end_date,
-
+                    'payment': payment,
+                    'end_date': payment.subscription.end_date
                 })
 
             return payment_failed(request, "Платеж не завершён")
