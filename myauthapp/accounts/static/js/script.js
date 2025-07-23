@@ -39,12 +39,6 @@ function setupInputHandlersWithAutoFocus() {
 
     // 3. Обработчик для интересующей даты
     const ourdateInput = document.getElementById('ourdateInput');
-    // ourdateInput?.addEventListener('change', async function() {
-    //     await processOurdate();
-    //     if (window.complexData.our_date) {
-    //         document.getElementById('methodSelect').focus();
-    //     }
-    // });
     ourdateInput?.addEventListener('keypress', async function(e) {
         if (e.key === 'Enter') {
             await processOurdate();
@@ -56,7 +50,14 @@ function setupInputHandlersWithAutoFocus() {
 
     // 4. Обработчик для метода расчета (автоотправка)
     const methodSelect = document.getElementById('methodSelect');
-    methodSelect?.addEventListener('change', submitMethodHandler);
+    methodSelect?.addEventListener('keypress', async function(e) {
+        if (e.key === 'Enter') {
+            await submitMethodHandler();
+            if (window.complexData.our_date) {
+                document.getElementById('compiled').focus();
+            }
+        }
+    }); 
 }
 
 // Функция обработки даты рождения

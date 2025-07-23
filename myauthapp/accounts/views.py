@@ -635,7 +635,7 @@ def process_method(request):
                         </div>\
                         "
                
-                if method=="ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА":
+                elif method=="ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА":
                     da_syao = pd.read_csv("accounts/data/da_syao.csv")
                     current_hour_china_list = da_syao[current_hour_china[1]].to_list()
                     current_hour_china_str = ' || '.join(current_hour_china_list)
