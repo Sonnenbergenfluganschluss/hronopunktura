@@ -1,6 +1,10 @@
 {% extends "accounts/base.html" %}
 {% load static %}
 
+{% block header %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <h1 class="mb-4">Тарифы</h1>
@@ -17,11 +21,6 @@
                         <small class="text-muted">/ {{ tariff.duration_days }} дней</small>
                     </h2>
                     <p>{{ tariff.description }}</p>
-                    <ul class="list-unstyled mt-3 mb-4">
-                        <li>Полный доступ к сервису</li>
-                        <li>Техническая поддержка</li>
-                        <li>Обновления системы</li>
-                    </ul>
                 </div>
                 <div class="card-footer bg-transparent">
                     {% if tariff.is_active %}

@@ -25,10 +25,12 @@ class Payment(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='RUB')
-    payment_id = models.CharField(max_length=100)  # ID платежа в ЮKassa
+    payment_id = models.CharField(max_length=100)
+    yookassa_payment_id = models.CharField(max_length=100)  # ID платежа в ЮKassa
     status = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
     tariff = models.ForeignKey(Tariff, on_delete=models.SET_NULL, null=True)
+    subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f"Платёж № {self.id}  от  {self.user.username  if  self.user else 'Нет пользователя'}"

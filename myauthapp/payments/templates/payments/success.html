@@ -1,6 +1,8 @@
 {% extends "accounts/base.html" %}
 {% load static %}
-
+{% block header %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
+{% endblock %}
 {% block content %}
 <div class="container py-5 text-center">
     <div class="alert alert-success" role="alert">
@@ -8,8 +10,8 @@
         <p>Спасибо за покупку подписки. Ваш платеж был успешно обработан.</p>
         <hr>
         <p class="mb-0">
-            <strong>Тариф:</strong> {{ payment.tariff.name }}<br>
-            <strong>Сумма:</strong> {{ payment.amount }} ₽<br>
+            <strong>Тариф:</strong> {{ tariff.name }}<br>
+            <strong>Сумма:</strong> {{ amount }} ₽<br>
             <strong>Статус:</strong> {{ payment.status }}
         </p>
     </div>
