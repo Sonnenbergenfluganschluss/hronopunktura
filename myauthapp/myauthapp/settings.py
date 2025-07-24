@@ -146,3 +146,14 @@ CSRF_USE_SESSIONS = False
 
 YOOKASSA_SHOP_ID = '1127478'  # Найти в личном кабинете ЮKassa
 YOOKASSA_SECRET_KEY = 'test_RojrVAuhuf5dVwSYDkuy-AMITYoTJCXE49yeSPu7dSs'  # Тестовый или живой
+
+# настраиваем кеш:
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",   # (например, Redis)
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}

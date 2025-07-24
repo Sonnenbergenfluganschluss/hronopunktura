@@ -2,7 +2,7 @@ from asyncio.log import logger
 import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -205,4 +205,25 @@ def payment_failed(request, error=None, tariff_id=None):
         'error': error,
         'tariff_id': tariff_id
     })
+
+
+
+# Проверка подписки и кэша для доступа к контенту
+from django.core.cache import cache_subscription_status
+
+@cache_subscription_status()
+def check_subscription(user):
+    return Subscription.objects.filter(
+        user=user,
+        is_active=True,
+        end_date__gte=datetime.now()
+    ).exists()
+
+class SubscriptionMiddleware:
+    def __call__(self, request):
+        if request.user.is_authenticated:
+            if not request.path.startswith(('/subscription/', '/admin/', '/logout/')):
+                if not check_subscription(request.user):
+                    return HttpResponseRedirect(reverse('subscription_required'))
+        return self.get_response(request)
 
