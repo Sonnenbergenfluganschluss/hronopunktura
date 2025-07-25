@@ -3,15 +3,15 @@
 <html>
 
 <head>
-    <title>{% block title %}My Auth App{% endblock %}</title>
+    <title>{% block title %}Калькулятор Ба Цзы{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
 </head>
 
 <body>
-    <div class="container" style="margin-top: 20px;">
-        <div class="container">
-            <div class="auth-links">
+    <div class="container" style="margin: 5px auto;">
+        <div class="container" style="margin: 0px auto;">
+            <div class="auth-links" style="margin: 0px auto; padding: 10px 10px;">
                 {% if user.is_authenticated %}
                 Привет, {{ user.username }}!
                 <a href="{% url 'home' %}">На главную</a>

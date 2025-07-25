@@ -81,38 +81,4 @@ class CustomUserChangeForm(UserChangeForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'birth_date', 'city', 'profile_picture')
-
-# from datetime import datetime
-
-    
-
-# class BaziForm(forms.Form):
-#     birthday = forms.DateField(
-#         widget=forms.DateInput(attrs={
-#             'type': 'date',
-#             'class': 'form-control',
-#             'id': 'date-input'
-#         }),
-#         label="Выберите дату рождения",
-#         required=True
-#     )
-    
-#     def clean_selected_date(self):
-#         date = self.cleaned_data.get('birthday')
-#         if not date:
-#             raise ValidationError("Пожалуйста, выберите дату!")
-#         return date
-    
-#     our_date = forms.DateField(
-#         widget=forms.DateInput(attrs={
-#             'type': 'date',
-#             'class': 'form-control',
-#             'id': 'date-input'
-#         }),
-#         label="Выберите интересующую дату",
-#         required=True
-#     )
-
-    
-#     city = forms.CharField(label="Город")
+        fields = ('username', 'email', 'birth_date', 'city')   #, 'profile_picture'

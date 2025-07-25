@@ -25,8 +25,8 @@ body {
 .container {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 20px;
-    padding-right: 20px;
+    padding: 5px 5px;
+    /* padding-right: 20px; */
     background-color: white;
     box-shadow: none;
     border-radius: 10px;
@@ -176,11 +176,15 @@ button, input[type="submit"] {
     color: white;
     border: none;
     padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 16px;
-    margin-top: 5px;
-}
+}        
+    
+button:hover {
+    background-color: #eeeeee;
+    color: var(--primary-color);
+}    
 
 .messages {
     list-style: none;
@@ -249,4 +253,21 @@ label {
 }
 .is-invalid {
     border-color: #dc3545 !important;
+}
+
+
+.premium-content {
+    position: relative;
+}
+.blur-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(5px);
+}
+.full-access .blur-overlay {
+    display: none;
 }

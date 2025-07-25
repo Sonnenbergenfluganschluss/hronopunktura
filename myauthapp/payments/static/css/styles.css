@@ -7,7 +7,7 @@
     --bs-primary-rgb: 111, 66, 193;
     --bs-primary-bg-subtle: #e9eef3;
     --bs-primary-border-subtle: #e9eef3;
-    --bs-primary-border: #013c70;
+    --border-primary: #013c70;
     --bs-primary-hover: #e9eef3;
     --bs-btn-primary: #013c70;
 }
@@ -137,6 +137,18 @@ table {
     table-layout: fixed;
 }
 
+.table {
+    width: 100%;
+    border: 2px solid #eeeeee;
+    border-radius: 10px;
+    border-collapse: collapse;
+    margin: 20px auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow: hidden;
+    table-layout: fixed;
+}
+
 .table_moon_palace {
     width: 60%;
     border-collapse: collapse;
@@ -172,6 +184,17 @@ td, th {
 }
 
 button, input[type="submit"] {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 5px;
+}
+
+.button_link {
     background-color: var(--primary-color);
     color: white;
     border: none;

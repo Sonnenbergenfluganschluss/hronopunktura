@@ -219,11 +219,11 @@ def check_subscription(user):
         end_date__gte=datetime.now()
     ).exists()
 
-class SubscriptionMiddleware:
-    def __call__(self, request):
-        if request.user.is_authenticated:
-            if not request.path.startswith(('/subscription/', '/admin/', '/logout/')):
-                if not check_subscription(request.user):
-                    return HttpResponseRedirect(reverse('subscription_required'))
-        return self.get_response(request)
+# class SubscriptionMiddleware:
+#     def __call__(self, request):
+#         if request.user.is_authenticated:
+#             if not request.path.startswith(('/subscription/', '/admin/', '/logout/')):
+#                 if not check_subscription(request.user):
+#                     return HttpResponseRedirect(reverse('subscription_required'))
+#         return self.get_response(request)
 
