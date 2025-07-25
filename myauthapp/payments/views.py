@@ -9,6 +9,8 @@ from django.conf import settings
 from django.urls import reverse
 from yookassa import Configuration, Payment
 from yookassa.domain.notification import WebhookNotification
+
+from payments.utils import cache_subscription_status
 from .models import Tariff, Subscription, Payment as PaymentModel
 import uuid
 from datetime import datetime, timedelta
@@ -209,8 +211,6 @@ def payment_failed(request, error=None, tariff_id=None):
 
 
 # Проверка подписки и кэша для доступа к контенту
-from django.core.cache import cache_subscription_status
-
 @cache_subscription_status()
 def check_subscription(user):
     return Subscription.objects.filter(
