@@ -151,8 +151,6 @@ def yookassa_webhook(request):
 
 @login_required
 def payment_success(request):
-    print('payment_id: ', request.GET.get('payment_id'))
-    print('yookassa_payment_id: ', request.GET.get('yookassa_payment_id'))
     payment_id = request.GET.get('payment_id')
     
     if not payment_id:

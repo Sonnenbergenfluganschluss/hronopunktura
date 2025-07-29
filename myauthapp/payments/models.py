@@ -12,7 +12,7 @@ class Tariff(models.Model):
         return self.name
 
 class Subscription(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='subscriptions')
     tariff = models.ForeignKey(Tariff, on_delete=models.CASCADE)
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField()
@@ -22,15 +22,25 @@ class Subscription(models.Model):
         return f"{self.user.email} - {self.tariff.name}"
 
 class Payment(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='payments')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='RUB')
     payment_id = models.CharField(max_length=100)
     yookassa_payment_id = models.CharField(max_length=100)  # ID платежа в ЮKassa
-    status = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
     tariff = models.ForeignKey(Tariff, on_delete=models.SET_NULL, null=True)
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True)
+    STATUS_CHOICES = [
+        ('pending', 'Ожидает оплаты'),
+        ('succeeded', 'Успешно'),
+        ('canceled', 'Отменен'),
+        ('failed', 'Ошибка оплаты'),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
 
     def __str__(self):
         return f"Платёж № {self.id}  от  {self.user.username  if  self.user else 'Нет пользователя'}"

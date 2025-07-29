@@ -28,17 +28,29 @@
     </div>
     <!-- Блок подписки -->
     <div class="subscription-status my-4 p-4 border rounded">
-        <h3>Статус подписки</h3>
-        <div>{{subscription}}</div>
+        <h3 style="color: var(--primary-color);">Статус подписки</h3>
 
         {% if has_active_subscription %}
-            {% with subscription=user.subscription.first %}
+            {% with subscription=user.subscriptions.first %}
             <div class="alert alert-success">
-                <p><strong>Текущая подписка:</strong> {{ subscription.tariff.name }}</p>
-                <p><strong>Действует до:</strong> {{ subscription.end_date|date:"d.m.Y" }}</p>
-                <p><strong>Автопродление:</strong> Нет</p>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Текущая подписка</th>
+                            <th>Действует до</th>
+                            <th>Автопродление</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ subscription.tariff.name }}</td>
+                            <td>{{ subscription.end_date|date:"d.m.Y" }}</td>
+                            <td>Нет</td>
+                        </tr>
+                    </tbody>
+                </table>        
             </div>
-            <a href="#" class="button_link btn-outline-danger">Отменить подписку</a>
+            <!-- <a href="#" class="button_link btn-outline-danger">Отменить подписку</a> -->
             {% endwith %}
         {% else %}
             <div class="alert alert-warning">
@@ -52,7 +64,7 @@
     
     <!-- История платежей -->
     <div class="payment-history my-4">
-        <h3>История платежей</h3>
+        <h3 style="color: var(--primary-color);">История платежей</h3>
         <table class="table">
             <thead>
                 <tr>
