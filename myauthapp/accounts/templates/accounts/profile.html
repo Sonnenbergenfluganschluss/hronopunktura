@@ -29,20 +29,21 @@
     <!-- Блок подписки -->
     <div class="subscription-status my-4 p-4 border rounded">
         <h3>Статус подписки</h3>
-        
+        <div>{{subscription}}</div>
+
         {% if has_active_subscription %}
-            {% with subscription=user.subscriptions.first %}
+            {% with subscription=user.subscription.first %}
             <div class="alert alert-success">
                 <p><strong>Текущая подписка:</strong> {{ subscription.tariff.name }}</p>
                 <p><strong>Действует до:</strong> {{ subscription.end_date|date:"d.m.Y" }}</p>
                 <p><strong>Автопродление:</strong> Нет</p>
             </div>
-            <a href="#" class="btn btn-outline-danger">Отменить подписку</a>
+            <a href="#" class="button_link btn-outline-danger">Отменить подписку</a>
             {% endwith %}
         {% else %}
             <div class="alert alert-warning">
                 <p>У вас нет активной подписки</p>
-                <a href="{% url 'subscriptions:tariff_list' %}" class="btn btn-primary">
+                <a href="{% url 'payments:tariff_list' %}" class="button_link">
                     Выбрать подписку
                 </a>
             </div>

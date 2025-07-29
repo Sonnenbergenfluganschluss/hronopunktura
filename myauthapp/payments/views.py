@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from django.conf import settings
 from django.urls import reverse
 from yookassa import Configuration, Payment
@@ -13,7 +14,7 @@ from yookassa.domain.notification import WebhookNotification
 from payments.utils import cache_subscription_status
 from .models import Tariff, Subscription, Payment as PaymentModel
 import uuid
-from datetime import datetime, timedelta
+
 
 # Настройка логгера
 logger = logging.getLogger(__name__)
@@ -30,8 +31,8 @@ def create_payment(request, tariff_id):
         subscription = Subscription.objects.create(
             user=request.user,
             tariff=tariff,
-            start_date=datetime.now(),
-            end_date=datetime.now() + timedelta(days=tariff.duration_days),
+            start_date=timezone.now(),
+            end_date=timezone.now() + timezone.timedelta(days=tariff.duration_days),
             is_active=False
         )
 
@@ -160,9 +161,6 @@ def payment_success(request):
     try:
         # Ищем платеж в БД
         payment = PaymentModel.objects.get(payment_id=payment_id, user=request.user)
-        print(payment)
-        print(payment.id)
-        print(payment.status)
         
         # Если вебхук уже обработал платеж, показываем успех
         if payment.status == 'succeeded':
@@ -177,7 +175,7 @@ def payment_success(request):
             print(yookassa_payment.id)
             print(yookassa_payment.status)
             print(yookassa_payment.id)
-            
+             
             if yookassa_payment.status == 'succeeded':
                 # Обновляем статус вручную (на случай, если вебхук ещё не пришёл)
                 payment.status = 'succeeded'
@@ -216,14 +214,6 @@ def check_subscription(user):
     return Subscription.objects.filter(
         user=user,
         is_active=True,
-        end_date__gte=datetime.now()
+        end_date__gte=timezone.now()
     ).exists()
-
-# class SubscriptionMiddleware:
-#     def __call__(self, request):
-#         if request.user.is_authenticated:
-#             if not request.path.startswith(('/subscription/', '/admin/', '/logout/')):
-#                 if not check_subscription(request.user):
-#                     return HttpResponseRedirect(reverse('subscription_required'))
-#         return self.get_response(request)
 

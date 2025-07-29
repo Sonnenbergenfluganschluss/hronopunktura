@@ -19,14 +19,15 @@ class SubscriptionMiddleware:
             not request.path_info in self.exempt_urls and
             not request.path_info.startswith('/admin/')):
             
-            has_active_sub = Subscription.objects.filter(
+            has_active_subscription = Subscription.objects.filter(
                 user=request.user,
                 is_active=True,
                 end_date__gte=timezone.now()
             ).exists()
             
-            if not has_active_sub and not getattr(request, 'allow_without_subscription', False):
+            if not has_active_subscription and not getattr(request, 'allow_without_subscription', False):
                 # Перенаправляем на страницу с предложением подписки
                 return redirect('payments:tariff_list')
         
         return response
+    
