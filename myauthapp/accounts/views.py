@@ -1,3 +1,5 @@
+# from asyncio.log import logger
+import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, CustomUserChangeForm
@@ -12,6 +14,9 @@ import os
 import pytz
 from itertools import cycle
 from payments.models import Tariff
+
+# Настройка логгера
+logger = logging.getLogger(__name__)
 
 
 animal = ["крыса", "бык", "тигр", "кролик", "дракон", "змея", "лошадь", "коза", "обезьяна", "петух", "собака", "свинья"]
@@ -132,7 +137,6 @@ calendar['date'] = pd.to_datetime(calendar['date'])
 @login_required
 def home(request, cities=cities):
     cit = cities["Город"].values.tolist()
-    print("Cities before JSON:", cit[:10])
     methods = [" ", "ЛУННЫЕ ДВОРЦЫ", "ФЭЙ ТЭН БА ФА", "ЛИН ГУЙ БА ФА", 
                "ТАЙ ЯН БА ФА", "ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА"]
     context = {
@@ -151,10 +155,7 @@ def process_birthday(request, calendar=calendar,
         try:
             data = json.loads(request.body)
             birthday = data.get('birthday')
-            print(birthday)
             try:
-                # birthday_vis = pd.to_datetime(birthday).strftime("%d.%m.%Y")
-                # print(birthday_vis)
                 if pd.to_datetime(birthday) < pd.to_datetime(seasons.loc[2, str(pd.to_datetime(birthday).year)]):
                     year_v = calendar[calendar['date']==pd.to_datetime(pd.to_datetime(birthday)-timedelta(days=51))]['years'].values[0]
                 else:
@@ -195,7 +196,7 @@ def process_birthday(request, calendar=calendar,
                         justify='center'  # Выравнивание
                     )
             except:
-                print("Некорректная дата. Попробуйте снова")
+                logger.error("Некорректная дата. Попробуйте снова")
             
             result = {
                 'success': True,
@@ -205,7 +206,6 @@ def process_birthday(request, calendar=calendar,
             return JsonResponse(result)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-
 
 def process_city(request, cities=cities):
     if request.method == 'POST':
@@ -217,7 +217,7 @@ def process_city(request, cities=cities):
                 if len(cities[cities["Город"].str.contains(city, regex=True).fillna(False)]) != 0:
                         raw = cities[cities["Город"].str.contains(city, regex=True)][["Индекс", "Город", "Часовой пояс"]]
                 else:
-                    print("Города нет в списке")
+                    logger.error("Города нет в списке")
 
                 id_city = raw.index
                 long = cities.loc[id_city, "Долгота"].values[0]
@@ -272,11 +272,10 @@ def process_our_date(request, calendar=calendar,
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            CURRENT_TIME_SOLAR = data.get('current_time')
-            print(CURRENT_TIME_SOLAR)
+            # CURRENT_TIME_SOLAR = data.get('current_time')
+            # print(CURRENT_TIME_SOLAR)
             our_date = data.get('ourdate')
             our_date = pd.to_datetime(our_date)
-            print(our_date)
 
             d = int(our_date.day)
 
@@ -389,10 +388,8 @@ def process_method(request):
             our_date = data.get('our_date')
             our_date_lst = our_date.split("T")[0].split("-")
             our_date = datetime(int(our_date_lst[0]), int(our_date_lst[1]), int(our_date_lst[2])).date()
-            print("our_date: ", our_date)
             day_iero = data.get('day_iero')
             CURRENT_TIME_SOLAR = data.get('current_time')
-            print("current_time: ", CURRENT_TIME_SOLAR)
             method_index = int(data.get('methodIndex'))
             methods = [" ", "ЛУННЫЕ ДВОРЦЫ", "ФЭЙ ТЭН БА ФА", 
                       "ЛИН ГУЙ БА ФА", "ТАЙ ЯН БА ФА", 
@@ -478,21 +475,13 @@ def process_method(request):
                     })
 
                     try:
-                        print(f"Помочь выйти событию (седирование)")
                         df_sed['Помочь выйти событию (седирование)'] = df_img.URL.map(lambda f: get_thumbnail(f))
                         df_sed = df_sed.to_html(formatters={'Помочь выйти событию (седирование)': image_formatter}, escape=False, header= False, index=False, border=0)
                     
-                        print(f"Заставить выйти событие (тонизация)")
                         df_ton['Заставить выйти событие (тонизация)'] = df_img.URL.map(lambda f: get_thumbnail(f))
                         df_ton = df_ton.to_html(formatters={'Заставить выйти событие (тонизация)': image_formatter}, escape=False, header= False, index=False, border=0)
                     except:
-                        print(f"Помочь выйти событию (седирование) \
-                                \nЯн \t**:green[{man[lunar_day-1]}]**\
-                                \nИнь \t**:green[{woman[lunar_day-1]}]**")
-
-                        print(f"Заставить выйти событие (тонизация)\
-                                \nЯн: \t**:green[{man[lunar_day_ton-1]}]**\
-                                \nИнь: \t**:green[{woman[lunar_day_ton-1]}]**")
+                        logger.error(f"Не получены данные для создания таблиц")
                     
                     return f" \
                         <div>\

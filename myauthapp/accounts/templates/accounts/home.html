@@ -14,7 +14,7 @@
     <section class="my-5">
         <h2>Бесплатный контент</h2>
         <p>Этот раздел доступен всем пользователям.</p>
-        <p style="padding-left: 20px;">Сегодня: <strong>{{ current_date_show }}</strong></p>
+        <p>Сегодня: <strong>{{ current_date_show }}</strong></p>
         
         <!-- Форма для даты -->
         <div class="container">
@@ -50,12 +50,14 @@
 
 
     <!-- Премиум контент -->
-    <section class="my-5">
-        <h2>Эксклюзивные материалы</h2>
-        <div>{{user.subscriptions.first.is_active}}</div>
+    <h2>Эксклюзивные материалы</h2>
+    {% if not user.subscriptions.first.is_active %}
         <div class="full-access">
             <p>Этот контент доступен только подписчикам. <a href="{% url 'payments:tariff_list' %}">Оформите подписку</a> для полного доступа.</p>
         </div>
+    {% endif %}
+    <section class="my-5">
+            
         <div class="premium-content">
             
             {% if has_active_subscription %}
@@ -117,12 +119,6 @@
     </section>
 </div>  
     
-
-
-
-
-
-        
     <script>
         // Передаем Django-переменные в JavaScript
         window.processBirthdayUrl = "{% url 'process_birthday' %}";

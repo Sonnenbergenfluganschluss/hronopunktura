@@ -95,7 +95,7 @@ function initCityAutocomplete() {
     console.log('Загружено городов:', cities.length);
     const searchInput = document.getElementById('citySearch');
     const citySelect = document.getElementById('citySelect');
-    let selectedCity = null;
+    let selectedCity = -1;
     
     searchInput?.addEventListener('input', function() {
         console.log('Ввод:', this.value);
@@ -114,10 +114,8 @@ function initCityAutocomplete() {
                 citySelect.appendChild(option);
             });
             citySelect.style.display = 'block';
-            document.getElementById('submitCity').disabled = false;
         } else {
             citySelect.style.display = 'none';
-            document.getElementById('submitCity').disabled = true;
         }
     });
     
