@@ -57,7 +57,10 @@ ROOT_URLCONF = 'myauthapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            'accounts/templates',
+            'payments/templates',
+            ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
