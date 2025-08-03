@@ -91,17 +91,9 @@ def local_css(file_name):
         print('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
 
 
-def read_files():       
-    cities = pd.read_csv("accounts/data/cities.csv")
-    earth_legs = pd.read_csv("accounts/data/earth_legs.csv")
-    sky_hands = pd.read_csv("accounts/data/sky_hands.csv")
-    planets = pd.read_csv("accounts/data/planets.csv")
-    moon_palace_df = pd.read_csv("accounts/data/moon_palace.csv")
-    calendar = pd.read_csv("accounts/data/calendar.csv")
-    cicle = pd.read_csv("accounts/data/cicle.csv")
-    seasons = pd.read_csv("accounts/data/seasons.csv")
-    veto = pd.read_csv("accounts/data/veto.csv")
-    return cities, earth_legs, sky_hands, planets, moon_palace_df, calendar, cicle, seasons, veto
+def read_files(table_name):       
+    table = pd.read_csv(f"accounts/data/{table_name}.csv")
+    return table
 
 
 def background(color):
@@ -129,13 +121,12 @@ def highlight_words(text):
         highlighted_text = text.replace(" ", "<br>")
     return highlighted_text
 
-cities, earth_legs, sky_hands, planets, moon_palace_df, calendar, cicle, seasons, veto = read_files()
-calendar['date'] = pd.to_datetime(calendar['date'])
 
 
 
 @login_required
-def home(request, cities=cities):
+def home(request):
+    cities = read_files('cities')
     cit = cities["Город"].values.tolist()
     methods = [" ", "ЛУННЫЕ ДВОРЦЫ", "ФЭЙ ТЭН БА ФА", "ЛИН ГУЙ БА ФА", 
                "ТАЙ ЯН БА ФА", "ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА"]
@@ -149,8 +140,12 @@ def home(request, cities=cities):
     return render(request, 'accounts/home.html', context)
 
 
-def process_birthday(request, calendar=calendar, 
-                     cicle=cicle, seasons=seasons, highlight_words=highlight_words):
+def process_birthday(request):
+    calendar = read_files('calendar')
+    cicle = read_files('cicle')
+    seasons = read_files('seasons')
+
+    calendar['date'] = pd.to_datetime(calendar['date'])
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -207,7 +202,9 @@ def process_birthday(request, calendar=calendar,
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
-def process_city(request, cities=cities):
+def process_city(request):
+    cities = read_files('cities')
+    
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -242,8 +239,9 @@ def process_city(request, cities=cities):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
         
-def city_search(request, cities=cities):
+def city_search(request):
     """API для поиска городов"""
+    cities = read_files('cities')
     try:
         query = request.GET.get('q', '').strip().lower()
        
@@ -266,9 +264,10 @@ def city_search(request, cities=cities):
         return JsonResponse([], safe=False)
 
 
-def process_our_date(request, calendar=calendar, 
-                     cicle=cicle, seasons=seasons, 
-                     highlight_words=highlight_words):
+def process_our_date(request):
+    calendar = read_files('calendar')
+    cicle = read_files('cicle')
+    seasons = read_files('seasons')
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -335,6 +334,7 @@ def process_our_date(request, calendar=calendar,
                     4:"Пятница", 5:"Суббота", 6:"Воскресенье"}
 
             # Планета-покровитель
+            planets = read_files('planets')
             planet = planets[planets['День_недели']==pd.to_datetime(our_date).day_of_week]['Планета'].values[0]
         
             # Цзя Цзы
@@ -355,6 +355,9 @@ def process_our_date(request, calendar=calendar,
             else:
                 str_veto = "<span style='color: #3d7945;'>Запрета нет.</span>"
             
+            veto = read_files('veto')
+            sky_hands = read_files('sky_hands')
+            earth_legs = read_files('earth_legs')
             str_result = f"<div><p>День: <span style='font-weight: bold;'>{in_yan_day.capitalize()}</span>\
                         \n<br>ЦзяЦзы дня: № <span style='font-weight: bold; color: #1e88e5;'>{zya_zy}</span>\
                         \n<br>Точки 24 Сезонов (Жэнь май): <span style='color: #1e88e5;'>{'  ||  '.join(season).strip()}</span>\
@@ -451,6 +454,7 @@ def process_method(request):
                         first_step = first_step+1
                     lunar_day = first_step + sec_step[our_date.month]+ our_date.day
 
+                    moon_palace_df = read_files('moon_palace_df')
                     while lunar_day > 28:
                         lunar_day+=-28
                     if lunar_day in range(1, 15):
@@ -530,6 +534,8 @@ def process_method(request):
                 elif method=="ЛИН ГУЙ БА ФА":
                     for_lin_gui_ba_fa = pd.read_csv("accounts/data/for_lin_gui_ba_fa.csv")
                     
+                    sky_hands = read_files('sky_hands')
+                    earth_legs = read_files('earth_legs')
                     linguibafa = []
                     for i in feitenbafa_day.index:
                         summ = sky_hands[sky_hands['Иероглиф']==day_iero[0]]['i_day'].values[0] + \
@@ -537,6 +543,7 @@ def process_method(request):
                                     earth_legs[earth_legs['Иероглиф']==day_iero[1]]['j_day'].values[0] + \
                                     earth_legs[earth_legs['Иероглиф']==feitenbafa_day.iloc[i, 1]]['j_hour'].values[0]
 
+                        cicle = read_files('cicle')
                         if cicle[cicle['Иероглиф']==day_iero]['инь_ян'].values[0] == 'ян':
                             res = summ%9
                             if res == 0:
@@ -698,7 +705,8 @@ def profile(request):
 
 
 
-def index(request, cities=cities):
+def index(request):
+    cities = read_files('cities')
     cit = cities["Город"].values.tolist()
     print("Cities before JSON:", cit[:10])
     methods = [" ", "ЛУННЫЕ ДВОРЦЫ", "ФЭЙ ТЭН БА ФА", "ЛИН ГУЙ БА ФА", 
