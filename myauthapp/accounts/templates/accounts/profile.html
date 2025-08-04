@@ -31,7 +31,7 @@
         <h3 style="color: var(--primary-color);">Статус подписки</h3>
 
         {% if has_active_subscription %}
-            {% with subscription=user.subscriptions.first %}
+            {% with subscription=user.subscriptions.last %}
             <div class="alert alert-success">
                 <table class="table">
                     <thead>
