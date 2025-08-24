@@ -12,6 +12,10 @@
     --bs-btn-primary: #013c70;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
@@ -200,18 +204,19 @@ button:hover {
 .rainbow-text {
     background: linear-gradient(
         90deg,
-        #ff0000 0%,    /* Красный */
-        #ff7f00 16%,   /* Оранжевый */
-        #ffff00 32%,   /* Жёлтый */
-        #00ff00 48%,   /* Зелёный */
-        #0000ff 64%,   /* Синий */
-        #4b0082 80%,   /* Индиго */
-        #9400d3 100%   /* Фиолетовый */
+        #7c0101 0%,    /* Красный */
+        #8f4802 16%,   /* Оранжевый */
+        #838301 32%,   /* Жёлтый */
+        #027c02 48%,   /* Зелёный */
+        #02026d 64%,   /* Синий */
+        #4a027e 80%,   /* Индиго */
+        #5c0381 100%   /* Фиолетовый */
     );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     font-size: 16px;
+    font-weight: bold;
     display: inline-block;
     white-space: nowrap; /* Запрет переноса строки */
     font-style: italic;

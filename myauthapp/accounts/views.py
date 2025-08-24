@@ -1,18 +1,16 @@
 # from asyncio.log import logger
-import logging
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, CustomUserChangeForm
-from django.contrib import messages
-from django.http import JsonResponse  # если нужен AJAX
 import json
-import pandas as pd
-import numpy as np
+# import pandas as pd
 from datetime import datetime, timedelta, date
 import re
 import os
-import pytz
 from itertools import cycle
+import logging
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse  # если нужен AJAX
+from .forms import CustomUserCreationForm, CustomUserChangeForm
 from payments.models import Tariff
 
 # Настройка логгера
@@ -56,48 +54,17 @@ woman = ["Gb.41", "Gb.44", "Gb.34", "Gb.37/Liv.3", "Liv.5/Gb.40", "Gb.38", "Gb.4
     "Co.3", "Co.1", "Co.11", "Co.6/Lu.9", "Co4/Lu.7", "Co.5", "Co.2", 
     "Si.3", "Si.1", "Si.8", "Si.7/Ht.7/Hg.7", "Ht.5/Hg.6/Si.4", "Si.5", "Si.2"]
 
-sky = {'甲': ':green[甲]',
-        '乙': ':green[乙]',
-        '丙': ':red[丙]',
-        '丁': ':red[丁]',
-        '戊': ':orange[戊]',
-        '己': ':orange[己]',
-        '庚': ':darkgray[庚]',
-        '辛': ':darkgray[辛]',
-        '壬': ':blue[壬]',
-        '癸': ':blue[癸]'}
+orange = '#ad5c0a'
 
-earth = {'子': ':blue[子]',
-        '丑': ':orange[丑]',
-        '寅': ':green[寅]',
-        '卯': ':green[卯]',
-        '辰': ':orange[辰]',
-        '巳': ':red[巳]',
-        '午': ':red[午]',
-        '未': ':orange[未]',
-        '申': ':darkgray[申]',
-        '酉': ':darkgray[酉]',
-        '戌': ':orange[戌]',
-        '亥': ':blue[亥]'}
+color_dict = {'甲':'green', '乙':'green', '丙':'red', '丁':'red', '戊':f'{orange}', '己':f'{orange}', '庚':'grey', '辛':'grey', '壬':'blue', '癸':'blue',
+                '子':'blue', '丑':f'{orange}', '寅':'green', '卯':'green', '辰':f'{orange}', '巳':'red', '午':'red', '未':f'{orange}', '申':'grey', '酉':'grey', '戌':f'{orange}', '亥':'blue'}
 
-color_dict = {'甲':'green', '乙':'green', '丙':'red', '丁':'red', '戊':'orange', '己':'orange', '庚':'grey', '辛':'grey', '壬':'blue', '癸':'blue',
-                '子':'blue', '丑':'orange', '寅':'green', '卯':'green', '辰':'orange', '巳':'red', '午':'red', '未':'orange', '申':'grey', '酉':'grey', '戌':'orange', '亥':'blue'}
+color_dict_earth = {'子':'blue', '丑':f'{orange}', '寅':'green', '卯':'green', '辰':f'{orange}', '巳':'red', '午':'red', '未':f'{orange}', '申':'grey', '酉':'grey', '戌':f'{orange}', '亥':'blue'}
 
-color_dict_earth = {'子':'blue', '丑':'orange', '寅':'green', '卯':'green', '辰':'orange', '巳':'red', '午':'red', '未':'orange', '申':'grey', '酉':'grey', '戌':'orange', '亥':'blue'}
-
-
-def local_css(file_name):
-    with open(file_name) as f:
-        print('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
-
-
-def read_files(table_name):       
-    table = pd.read_csv(f"accounts/data/{table_name}.csv")
+def read_files(table_name):
+    with open(f"accounts/data/{table_name}.json", encoding='utf-8') as f: # Открываем файл и связываем его с объектом "f"
+        table = json.load(f)
     return table
-
-
-def background(color):
-    return np.where(f"color: {color};", None)
 
 def get_month(our_date):
     stih = cycle(stihiya)
@@ -118,6 +85,8 @@ def highlight_words(text):
         highlighted_text = text.replace(text[0], f'<span style="color:{color_dict[text[0]]};font-weight: bold">{text[0]}</span>')
         highlighted_text = highlighted_text.replace(text[1], f'<span style="color:{color_dict[text[1]]};font-weight: bold">{text[1]}</span>')
     else:
+        highlighted_text = text.strip()
+        highlighted_text = text.replace("  ", " ")
         highlighted_text = text.replace(" ", "<br>")
     return highlighted_text
 
@@ -127,7 +96,7 @@ def highlight_words(text):
 @login_required
 def home(request):
     cities = read_files('cities')
-    cit = cities["Город"].values.tolist()
+    cit = [row["Город"] for row in cities]
     methods = [" ", "ЛУННЫЕ ДВОРЦЫ", "ФЭЙ ТЭН БА ФА", "ЛИН ГУЙ БА ФА", 
                "ТАЙ ЯН БА ФА", "ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА"]
     context = {
@@ -144,54 +113,51 @@ def process_birthday(request):
     calendar = read_files('calendar')
     cicle = read_files('cicle')
     seasons = read_files('seasons')
-
-    calendar['date'] = pd.to_datetime(calendar['date'])
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             birthday = data.get('birthday')
-            try:
-                if pd.to_datetime(birthday) < pd.to_datetime(seasons.loc[2, str(pd.to_datetime(birthday).year)]):
-                    year_v = calendar[calendar['date']==pd.to_datetime(pd.to_datetime(birthday)-timedelta(days=51))]['years'].values[0]
-                else:
-                    year_v = calendar[calendar['date']==pd.to_datetime(birthday)]['years'].values[0]
+            birthday_date = datetime.strptime(birthday, '%Y-%m-%d')
+            get_birthday = [row for row in calendar if row['date'] == birthday_date.date().strftime('%Y-%m-%d')][0]
 
-                mv = calendar[calendar['date']==pd.to_datetime(birthday)]['months'].values[0]
-                if pd.to_datetime(birthday) < pd.to_datetime(seasons[seasons['Месяц']==mv.split()[0]][str(pd.to_datetime(birthday).year)].values[0]):
-                    month_v = calendar[calendar['date']==pd.to_datetime(pd.to_datetime(birthday)-timedelta(days=21))]['months'].values[0]
-                else:
-                    month_v = calendar[calendar['date']==pd.to_datetime(birthday)]['months'].values[0]
-                day_v = calendar[calendar['date']==pd.to_datetime(birthday)]['days'].values[0]
-                day_ier = cicle[cicle["Название_calendar"] == day_v]["Иероглиф"].values[0]
-                month_ier = cicle[cicle["Название_calendar"] == month_v]["Иероглиф"].values[0]
-                year_ier = cicle[cicle["Название_calendar"] == year_v]["Иероглиф"].values[0]
+            if datetime.strptime(birthday, '%Y-%m-%d').date() < datetime.strptime(seasons[2][str(datetime.strptime(birthday, '%Y-%m-%d').year)], '%Y-%m-%d').date():
+                year_v = [row for row in calendar if row['date'] == (birthday_date-timedelta(days=51)).date().strftime('%Y-%m-%d')][0]['years']
+            else:
+                year_v = get_birthday['years']
 
-                birthday_df = pd.DataFrame(columns=["День", "Месяц", "Год"], data=None)
-                birthday_df["День"] = [
-                    f"{cicle[cicle['Название_calendar'] == day_v]['Название_Русский'].values[0]}",
-                    day_ier
-                ]
-                birthday_df["Месяц"] = [
-                    f"{cicle[cicle['Название_calendar'] == month_v]['Название_Русский'].values[0]}",
-                    month_ier
-                ]
-                birthday_df["Год"] = [
-                    f"{cicle[cicle['Название_calendar'] == year_v]['Название_Русский'].values[0]}",
-                    year_ier
-                ]
-                birthday_df['День'] = birthday_df['День'].apply(highlight_words)
-                birthday_df['Месяц'] = birthday_df['Месяц'].apply(highlight_words)
-                birthday_df['Год'] = birthday_df['Год'].apply(highlight_words)
-                
-                styled_df_b = birthday_df.to_html(
-                        classes='table table-striped table-hover',
-                        table_id='styled_df_b',
-                        escape=False,
-                        index=False,  # Не показывать индексы
-                        justify='center'  # Выравнивание
-                    )
-            except:
-                logger.error("Некорректная дата. Попробуйте снова")
+            mv = get_birthday['months']
+            if birthday_date.date() < datetime.strptime([row for row in seasons if row['Месяц'] == mv.split()[0]][0][birthday[:4]], '%Y-%m-%d').date():
+                month_v = [row for row in calendar if row['date'] == (birthday_date-timedelta(days=21)).date().strftime('%Y-%m-%d')][0]['months']
+            else:
+                month_v = get_birthday['months']
+            day_v = get_birthday['days']
+
+            day_ier = [row for row in cicle if row['Название_calendar'] == day_v][0]["Иероглиф"]
+            month_ier = [row for row in cicle if row['Название_calendar'] == month_v][0]["Иероглиф"]
+            year_ier = [row for row in cicle if row['Название_calendar'] == year_v][0]["Иероглиф"]
+
+            birth_day = [row for row in cicle if row["Название_calendar"] == day_v][0]["Название_Русский"]
+            birth_mon = [row for row in cicle if row["Название_calendar"] == month_v][0]["Название_Русский"]
+            birth_yea = [row for row in cicle if row["Название_calendar"] == year_v][0]["Название_Русский"]
+            
+            
+            styled_df_b = f'''<table>
+                                    <tr>
+                                        <th> День </th>
+                                        <th> Месяц </th>
+                                        <th> Год </th>
+                                    </tr>
+                                    <tr>
+                                        <td>{highlight_words(birth_day)}</td>
+                                        <td>{highlight_words(birth_mon)}</td>
+                                        <td>{highlight_words(birth_yea)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{highlight_words(day_ier)}</td>
+                                        <td>{highlight_words(month_ier)}</td>
+                                        <td>{highlight_words(year_ier)}</td>
+                                    </tr>                                   
+                                </table>'''
             
             result = {
                 'success': True,
@@ -209,22 +175,18 @@ def process_city(request):
         try:
             data = json.loads(request.body)
             city = data.get('city')
-            cit = cities["Город"].values.tolist()
+            cit = [row["Город"] for row in cities]
             if city in cit:
-                if len(cities[cities["Город"].str.contains(city, regex=True).fillna(False)]) != 0:
-                        raw = cities[cities["Город"].str.contains(city, regex=True)][["Индекс", "Город", "Часовой пояс"]]
-                else:
-                    logger.error("Города нет в списке")
+                row_cit = [row for row in cities if row["Город"]==city][0]
 
-                id_city = raw.index
-                long = cities.loc[id_city, "Долгота"].values[0]
+                long = row_cit["Долгота"]
                 hours = int(long//15)
                 minutes = int(round((long/15 - hours)*60))
 
-                utc = int(raw["Часовой пояс"].values[0])
+                utc = int(row_cit["Часовой пояс"])
 
                 CURRENT_TIME = (datetime.utcnow() + timedelta(hours=utc)).time().strftime('%H:%M')
-                CURRENT_TIME_SOLAR = (datetime.utcnow() + timedelta(hours=hours, minutes=minutes)).time().strftime('%H:%M')
+                CURRENT_TIME_SOLAR = (datetime.utcnow() + timedelta(hours=hours, minutes=minutes)).time().strftime('%H:%M')           
             else:
                 f"Город {city} отсутствует в списке."
 
@@ -246,7 +208,7 @@ def city_search(request):
         query = request.GET.get('q', '').strip().lower()
        
         # 1. Получаем список городов из контекста (можно заменить на cache/db)
-        cit = cities["Город"].values.tolist()
+        cit = [row["Город"] for row in cities]
         
         # 2. Фильтрация (регистронезависимый поиск подстроки)
         filtered = [
@@ -271,61 +233,61 @@ def process_our_date(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            # CURRENT_TIME_SOLAR = data.get('current_time')
-            # print(CURRENT_TIME_SOLAR)
             our_date = data.get('ourdate')
-            our_date = pd.to_datetime(our_date)
-
-            d = int(our_date.day)
-
-            if pd.to_datetime(our_date) < pd.to_datetime(seasons.loc[2, str(our_date.year)]):
-                year_o = calendar[calendar['date']==pd.to_datetime(pd.to_datetime(our_date)-timedelta(days=51))]['years'].values[0]
+            our_date_date = datetime.strptime(our_date, '%Y-%m-%d')
+            get_our_date = [row for row in calendar if row['date'] == our_date_date.date().strftime('%Y-%m-%d')][0]
+            print(get_our_date)
+            if datetime.strptime(our_date, '%Y-%m-%d').date() < datetime.strptime(seasons[2][str(datetime.strptime(our_date, '%Y-%m-%d').year)], '%Y-%m-%d').date():
+                year_o = [row for row in calendar if row['date'] == (our_date_date-timedelta(days=51)).date().strftime('%Y-%m-%d')][0]['years']
             else:
-                year_o = calendar[calendar['date']==pd.to_datetime(our_date)]['years'].values[0]
+                year_o = get_our_date['years']
 
-            mo = calendar[calendar['date']==pd.to_datetime(our_date)]['months'].values[0]
-            if pd.to_datetime(our_date) < pd.to_datetime(seasons[seasons['Месяц']==mo.split()[0]][str(pd.to_datetime(our_date).year)].values[0]):
-                month_o = calendar[calendar['date']==pd.to_datetime(pd.to_datetime(our_date)-timedelta(days=21))]['months'].values[0]
+            mo = get_our_date['months']
+            if our_date_date.date() < datetime.strptime([row for row in seasons if row['Месяц'] == mo.split()[0]][0][our_date[:4]], '%Y-%m-%d').date():
+                month_o = [row for row in calendar if row['date'] == (our_date_date-timedelta(days=21)).date().strftime('%Y-%m-%d')][0]['months']
             else:
-                month_o = calendar[calendar['date']==pd.to_datetime(our_date)]['months'].values[0]
+                month_o = get_our_date['months']
+            day_o = get_our_date['days']
 
-            day_o = calendar[calendar['date']==pd.to_datetime(our_date)]['days'].values[0]
-            day = cicle[cicle["Название_calendar"] == day_o]["Название_Русский"].values[0]
-            day_iero = cicle[cicle["Название_calendar"] == day_o]["Иероглиф"].values[0]
-            month_iero = cicle[cicle["Название_calendar"] == month_o]["Иероглиф"].values[0]
-            year_iero = cicle[cicle["Название_calendar"] == year_o]["Иероглиф"].values[0]
+            day_iero = [row for row in cicle if row['Название_calendar'] == day_o][0]["Иероглиф"]
+            month_iero = [row for row in cicle if row['Название_calendar'] == month_o][0]["Иероглиф"]
+            year_iero = [row for row in cicle if row['Название_calendar'] == year_o][0]["Иероглиф"]
 
-            our_date_df = pd.DataFrame(columns=["День", "Месяц", "Год"])
-            our_date_df["День"] = [
-                f"{cicle[cicle['Название_calendar'] == day_o]['Название_Русский'].values[0]}",
-                day_iero
-            ]
-            our_date_df["Месяц"] = [
-                f"{cicle[cicle['Название_calendar'] == month_o]['Название_Русский'].values[0]}",
-                month_iero
-            ]
-            our_date_df["Год"] = [
-                f"{cicle[cicle['Название_calendar'] == year_o]['Название_Русский'].values[0]}",
-                year_iero
-            ]
-            our_date_df['День'] = our_date_df['День'].apply(highlight_words)
-            our_date_df['Месяц'] = our_date_df['Месяц'].apply(highlight_words)
-            our_date_df['Год'] = our_date_df['Год'].apply(highlight_words)
+            birth_dayo = [row for row in cicle if row["Название_calendar"] == day_o][0]["Название_Русский"]
+            birth_mono = [row for row in cicle if row["Название_calendar"] == month_o][0]["Название_Русский"]
+            birth_yeao = [row for row in cicle if row["Название_calendar"] == year_o][0]["Название_Русский"]
             
-            styled_df_o = our_date_df.style.hide(axis="index").set_table_attributes('style="width: 100%;"').to_html()
+            
+            styled_df_o = f'''<table>
+                                    <tr>
+                                        <th> День </th>
+                                        <th> Месяц </th>
+                                        <th> Год </th>
+                                    </tr>
+                                    <tr>
+                                        <td>{highlight_words(birth_dayo)}</td>
+                                        <td>{highlight_words(birth_mono)}</td>
+                                        <td>{highlight_words(birth_yeao)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{highlight_words(day_iero)}</td>
+                                        <td>{highlight_words(month_iero)}</td>
+                                        <td>{highlight_words(year_iero)}</td>
+                                    </tr>                                   
+                                </table>'''
 
             # Инь-ян
-            in_yan_day = cicle[cicle['Название_calendar'] == day_o]['инь_ян'].values[0]
+            in_yan_day = [row for row in cicle if row['Название_calendar'] == day_o][0]['инь_ян']
         
             # Определяем сезон по дате
-            if (pd.to_datetime(our_date) < pd.to_datetime(seasons[str(our_date.year)][0])) or (pd.to_datetime(our_date) >= pd.to_datetime(seasons[str(our_date.year)][23])):
-                season = seasons.iloc[23][["Символ", "Название", "Точки_Жэнь_май",	"Название_точки"]].values
-                n_season = seasons.iloc[23][['Сезон']].values[0]
+            if (our_date_date < datetime.strptime(seasons[0][str(our_date_date.year)], '%Y-%m-%d')) or (our_date_date >= datetime.strptime(seasons[23][str(our_date_date.year)], '%Y-%m-%d')):
+                season = seasons[23]
+                n_season = seasons[23]['Сезон']
             else:
                 for d in range(23):
-                    if (pd.to_datetime(our_date) >= pd.to_datetime(seasons[str(our_date.year)][d])) & (pd.to_datetime(our_date)<pd.to_datetime(seasons[str(our_date.year)][d+1])):
-                        season = seasons.iloc[d][["Символ", "Название", "Точки_Жэнь_май",	"Название_точки"]].values
-                        n_season = seasons.iloc[d][['Сезон']].values[0]
+                    if (our_date_date >= datetime.strptime(seasons[d][str(our_date_date.year)], '%Y-%m-%d')) & (our_date_date < datetime.strptime(seasons[d+1][str(our_date_date.year)], '%Y-%m-%d')):
+                        season = seasons[d]
+                        n_season = seasons[d]['Сезон']
                         break
             
             # Определяем день недели
@@ -335,23 +297,21 @@ def process_our_date(request):
 
             # Планета-покровитель
             planets = read_files('planets')
-            planet = planets[planets['День_недели']==pd.to_datetime(our_date).day_of_week]['Планета'].values[0]
+            planet = [row for row in planets if row['День_недели']==our_date_date.weekday()][0]['Планета']
         
             # Цзя Цзы
-            zya_zy = cicle[cicle['Название_calendar'] == day_o]['Цзя_Цзы'].values[0]
+            zya_zy = [row for row in cicle if row['Название_calendar'] == day_o][0]['Цзя_Цзы']
 
-            # Запреты выводим:
-            # Дни небесного запрета
-            day_sky_veto = pd.read_csv("accounts/data/day_sky_veto.csv")
-            id_v = day_sky_veto[day_sky_veto['сезон']==n_season].index
-            if ((day_iero[0]=='戊') or (day_iero[0]=='己')) and ((zya_zy==day_sky_veto.iloc[id_v, 1].values[0]) or (zya_zy==day_sky_veto.iloc[id_v, 2].values[0])):
+            day_sky_veto = read_files("day_sky_veto")
+            ses = [row for row in day_sky_veto if row['сезон']==n_season][0]
+            if ((day_iero[0]=='戊') or (day_iero[0]=='己')) and ((zya_zy==ses['ЦзяЦзы1']) or (zya_zy==ses['ЦзяЦзы2'])):
                 str_veto = f"\
-                    \n1 <span style='color: red;'>{day_sky_veto.iloc[id_v, 3].values[0]}</span> \
+                    \n1 <span style='color: red;'>{ses['ЗАПРЕТЫ']}</span> \
                     \n2 <span style='color: red;'>Точки инь и ян каналов в области живота (ниже диафрагмы)</span>"
             elif (day_iero[0]=='戊') or (day_iero[0]=='己'):
                 str_veto = "<span style='color: red;'>Точки инь и ян каналов в области живота (ниже диафрагмы)</span>"
-            elif (zya_zy==day_sky_veto.iloc[id_v, 1].values[0]) or (zya_zy==day_sky_veto.iloc[id_v, 2].values[0]):
-                str_veto = f"<span style='color: red;'>{day_sky_veto.iloc[id_v, 3].values[0]}</span>"
+            elif (zya_zy==ses['ЦзяЦзы1']) or (zya_zy==ses['ЦзяЦзы2']):
+                str_veto = f"<span style='color: red;'>{ses['ЗАПРЕТЫ']}</span>"
             else:
                 str_veto = "<span style='color: #3d7945;'>Запрета нет.</span>"
             
@@ -360,16 +320,16 @@ def process_our_date(request):
             earth_legs = read_files('earth_legs')
             str_result = f"<div><p>День: <span style='font-weight: bold;'>{in_yan_day.capitalize()}</span>\
                         \n<br>ЦзяЦзы дня: № <span style='font-weight: bold; color: #1e88e5;'>{zya_zy}</span>\
-                        \n<br>Точки 24 Сезонов (Жэнь май): <span style='color: #1e88e5;'>{'  ||  '.join(season).strip()}</span>\
-                        \n<br>День недели: <span style='font-weight: bold;'>{dow_dict[pd.to_datetime(our_date).day_of_week]}</span>\
+                        # \n<br>Точки 24 Сезонов (Жэнь май): <span style='color: #1e88e5;'>{season['Символ']} || {season['Название']} || {season['Точки_Жэнь_май']} || {season['Название_точки']}</span>\
+                        \n<br>День недели: <span style='font-weight: bold;'>{dow_dict[our_date_date.weekday()]}</span>\
                         \n<br>Планета-покровитель: <span style='color: #3d7945; font-weight: bold;'>{planet.capitalize()}</span>\
-                        \n<br><span style='font-style: italic;'>Запрет по 4 сезонам:</span> <span style='font-weight: bold;'>{veto[veto['месяц']==month_iero[1]]['запрет'].values[0]}</span>\
+                        \n<br><span style='font-style: italic;'>Запрет по 4 сезонам:</span> <span style='font-weight: bold;'>{[row for row in veto if row['месяц']==month_iero[1]][0]['запрет']}</span>\
                         \n<br><span style='font-style: italic;'>Запреты на ручные каналы:</span>\
-                        \n  <br><span style='font-weight: bold; color: red;'>{sky_hands[sky_hands['Иероглиф']==day_iero[0]]['канал'].values[0]}</span>, \
-                                <span style='font-weight: bold;'>{sky_hands[sky_hands['Иероглиф']==day_iero[0]]['сторона_тела'].values[0]} сторона:  пять точек транспортировки и точки между ними (до локтя)</span>\
+                        \n  <br><span style='font-weight: bold; color: red;'>{[row for row in sky_hands if row['Иероглиф']==day_iero[0]][0]['канал']}</span>, \
+                                <span style='font-weight: bold;'>{[row for row in sky_hands if row['Иероглиф']==day_iero[0]][0]['сторона_тела']} сторона:  пять точек транспортировки и точки между ними (до локтя)</span>\
                         \n<br><span style='font-style: italic;'>Запреты на ножные каналы:</span>\
-                        \n  <br><span style='font-weight: bold; color: red;'>{earth_legs[earth_legs['Иероглиф']==month_iero[1]]['канал'].values[0]}</span>, \
-                                <span style='font-weight: bold; '>{earth_legs[earth_legs['Иероглиф']==month_iero[1]]['сторона_тела'].values[0]} сторона: пять точек транспортировки и точки между ними (до колена)</span>\
+                        \n  <br><span style='font-weight: bold; color: red;'>{[row for row in earth_legs if row['Иероглиф']==month_iero[1]][0]['канал']}</span>, \
+                                <span style='font-weight: bold; '>{[row for row in earth_legs if row['Иероглиф']==month_iero[1]][0]['сторона_тела']} сторона: пять точек транспортировки и точки между ними (до колена)</span>\
                         \n<br><span style='font-style: italic;'>Дни небесного запрета:</span> {str_veto}</p></div>"
             
             result = {
@@ -385,12 +345,12 @@ def process_our_date(request):
         
 
 def process_method(request):
+    pass
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             our_date = data.get('our_date')
-            our_date_lst = our_date.split("T")[0].split("-")
-            our_date = datetime(int(our_date_lst[0]), int(our_date_lst[1]), int(our_date_lst[2])).date()
+            our_date = datetime.strptime(our_date, '%Y-%m-%d').date()
             day_iero = data.get('day_iero')
             CURRENT_TIME_SOLAR = data.get('current_time')
             method_index = int(data.get('methodIndex'))
@@ -402,24 +362,37 @@ def process_method(request):
            
             def calculate_method(selected_method, our_date = our_date, day_iero=day_iero):
                 method = selected_method
-                feitenbafa = pd.read_csv("accounts/data/feitenbafa.csv")
-                for_feitenbafa = pd.read_csv("accounts/data/for_feitenbafa.csv")
+                feitenbafa = read_files('feitenbafa')
+                for_feitenbafa = read_files('for_feitenbafa')
 
-                day_predictions = feitenbafa.merge(for_feitenbafa.rename(columns={"Иероглиф":day_iero[0]}))
-                feitenbafa_day = day_predictions[[day_iero[0], 'Иероглиф',	'Время',	'Канал',	'Точки']]
+                for x in range(12):
+                    new=[row for row in for_feitenbafa if row['Иероглиф']==feitenbafa[x][day_iero[0]]][0]
+                    feitenbafa[x].update(new)
+                    
+                current_hour = int(re.search(r"(\d*)", CURRENT_TIME_SOLAR)[0])
 
-                current_hour = re.search(r"(\d*)", CURRENT_TIME_SOLAR)[0]
-
-                # Определяем час по текущему времени.
-                if (int(current_hour) == 23) or (int(current_hour) == 0):
-                    current_hour_china_list = feitenbafa_day.iloc[0].values
+                if (current_hour == 23) or (current_hour == 0):
+                    current_hour_china_list = feitenbafa[0]
                 else:
                     for h in range(1,12):
-                        if (int(current_hour) >= (feitenbafa['Время_int'][h])) & (int(current_hour) < (feitenbafa['Время_int'][h]+2)):
-                            current_hour_china_list = feitenbafa_day.iloc[h].values
+                        if (current_hour >= (feitenbafa[h]['Время_int'])) & (current_hour < (feitenbafa[h]['Время_int']+2)):
+                            current_hour_china_list = feitenbafa[h]
                             break
 
-                current_hour_china = ''.join(current_hour_china_list[:2])
+                current_hour_china = [current_hour_china_list['Иероглиф_ЗВ'], current_hour_china_list['Время'], current_hour_china_list['Канал'], current_hour_china_list['Точки']]
+                
+                headOfT = ""
+                timeOfT = ""
+                style_column = ""
+                for row in feitenbafa:
+                    if row["Иероглиф_ЗВ"] == current_hour_china[0]:
+                        style_column = " style='background-color: yellow;'"
+                    else:
+                        style_column = ""
+                    headOfT += f"<th{style_column}> <span style='color:{color_dict[row['Иероглиф_ЗВ']]};font-weight: bold'>{row['Иероглиф_ЗВ']}</span> </th>"
+                    timeOfT += f"<td{style_column}> {highlight_words(row['Время'])} </td>"                
+                                
+                
                 if method=="ЛУННЫЕ ДВОРЦЫ":
 
                     import base64
@@ -439,112 +412,123 @@ def process_method(request):
                             im.save(buffer, 'png')
                             return base64.b64encode(buffer.getvalue()).decode()
 
-
                     def image_formatter(im):
-                        return f'<img src="data:image/png;base64,{image_base64(im)}">'
+                        return f'<img src="data:image/png; base64,{image_base64(im)}" style="width: 30%; display: block; margin: 0 auto;">'
 
-                    path_yan = 'accounts/data/images/yan.png'
-                    path_in = 'accounts/data/images/in.png'
+                    path_yan = 'accounts/data/images/yan.jpg'
+                    path_in = 'accounts/data/images/in.jpg'
 
-                    # Считаем лунную стоянку
                     for k, v in moon_palace.items():
                         if our_date.year in v:
                             first_step = k
-                    if (our_date.year in vis_yaer) & (pd.to_datetime(our_date) > pd.to_datetime(f"{our_date.year}-02-28")):
+                    if (our_date.year in vis_yaer) & (our_date > datetime.strptime(f"{our_date.year}-02-28", "%Y-%m-%d").date()):
                         first_step = first_step+1
                     lunar_day = first_step + sec_step[our_date.month]+ our_date.day
 
-                    moon_palace_df = read_files('moon_palace_df')
+                    moon_palace_df = read_files('moonPalace')
                     while lunar_day > 28:
                         lunar_day+=-28
                     if lunar_day in range(1, 15):
                         lunar_day_ton = lunar_day+14
                     else:
                         lunar_day_ton = lunar_day-14
-                    symbol = moon_palace_df[moon_palace_df["Лунный_день"]==lunar_day]["Иероглиф"].values[0]
-                    val = moon_palace_df[moon_palace_df["Лунный_день"]==lunar_day]["Созвездие"].values[0]
-                    point = moon_palace_df[moon_palace_df["Лунный_день"]==lunar_day][["Точка_Ду_май", "Название"]].values[0][0] + \
-                        "||" + moon_palace_df[moon_palace_df["Лунный_день"]==lunar_day][["Точка_Ду_май", "Название"]].values[0][1]
-
-                    df_img = pd.DataFrame({
-                        'URL':[path_yan, path_in],
-                    })
-                    df_sed = pd.DataFrame({
-                        'Помочь выйти событию (седирование)': [" ", " "],
-                        'Точки':[man[lunar_day-1], woman[lunar_day-1]]    
-                    })
-                    df_ton = pd.DataFrame({
-                        'Заставить выйти событие (тонизация)': [" ", " "],
-                        'Точки':[man[lunar_day_ton-1], woman[lunar_day_ton-1]]    
-                    })
-
-                    try:
-                        df_sed['Помочь выйти событию (седирование)'] = df_img.URL.map(lambda f: get_thumbnail(f))
-                        df_sed = df_sed.to_html(formatters={'Помочь выйти событию (седирование)': image_formatter}, escape=False, header= False, index=False, border=0)
-                    
-                        df_ton['Заставить выйти событие (тонизация)'] = df_img.URL.map(lambda f: get_thumbnail(f))
-                        df_ton = df_ton.to_html(formatters={'Заставить выйти событие (тонизация)': image_formatter}, escape=False, header= False, index=False, border=0)
-                    except:
-                        logger.error(f"Не получены данные для создания таблиц")
-                    
-                    return f" \
-                        <div>\
-                            <div>\
-                                Лунная стоянка: <span style='font-weight: bold;'>{str(lunar_day)}</span> <span style='font-weight: bold; color: red;'>{symbol}</span> <span style='font-weight: bold;'>{val.capitalize()}</span> \
-                                <br>Точки 28 Лунных Стоянок (Ду май): <span style='font-weight: bold;'>{point}</span> \
-                                <br>\
-                                <br><span style='font-style: italic;'>Техника 28 Лунных Стоянок</span>\
-                                <br>Помочь выйти событию (седирование)\
-                                <div class='table_moon_palace'>\
-                                    <table>\
-                                        {df_sed}\
-                                    </table>\
-                                </div>\
-                                <br>Заставить выйти событие (тонизация)\
-                                <div class='table_moon_palace'>\
-                                    <table>\
-                                        {df_ton}\
-                                    </table>\
-                                </div>\
-                            </div>\
-                        </div>\
-                        "
+                    row_ld = [row for row in moon_palace_df if row["Лунный_день"]==lunar_day][0]
+                    symbol = row_ld["Иероглиф"]
+                    val = row_ld["Созвездие"]
+                    point = row_ld["Точка_Ду_май"] + "||" + row_ld["Название"]
+                 
+                    return f''' 
+                        <div>
+                            <div>
+                                Лунная стоянка: <span style='font-weight: bold;'>{str(lunar_day)}</span> <span style='font-weight: bold; color: red;'>{symbol}</span> <span style='font-weight: bold;'>{val.capitalize()}</span> 
+                                <br>Точки 28 Лунных Стоянок (Ду май): <span style='font-weight: bold;'>{point}</span> 
+                                <br>
+                                <br><span style='font-style: italic;'>Техника 28 Лунных Стоянок</span>
+                                <br>Помочь выйти событию (седирование)
+                                <div class='table_moon_palace'>
+                                    <table>
+                                        <tr>
+                                            <th> Помочь выйти событию (седирование) </th>
+                                            <th> Точки </th>
+                                        </tr>
+                                        <tr>
+                                            <td>{image_formatter(get_thumbnail(path_yan))}</td>
+                                            <td>{man[lunar_day-1]}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{image_formatter(get_thumbnail(path_in))}</td>
+                                            <td>{woman[lunar_day-1]}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <br>Заставить выйти событие (тонизация)
+                                <div class='table_moon_palace'>
+                                    <table>
+                                        <tr>
+                                            <th> Заставить выйти событие (тонизация) </th>
+                                            <th> Точки </th>
+                                        </tr>
+                                        <tr>
+                                            <td>{image_formatter(get_thumbnail(path_yan))}</td>
+                                            <td>{man[lunar_day_ton-1]}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{image_formatter(get_thumbnail(path_in))}</td>
+                                            <td>{woman[lunar_day_ton-1]}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        '''
 
                 elif method=="ФЭЙ ТЭН БА ФА":                    
-                    feitenbafa_day_disp = feitenbafa_day.iloc[:, 1:].T
-                    feitenbafa_day_disp.to_csv("accounts/data/feitenbafa_day_disp.csv", index=False)
-                    feitenbafa_day_disp = pd.read_csv("accounts/data/feitenbafa_day_disp.csv", header=1)
+                    channelOfT = ""
+                    pointsOfT = ""
+                    for row in feitenbafa:
+                        if row["Иероглиф_ЗВ"] == current_hour_china[0]:
+                            style_column = " style='background-color: yellow;'"
+                        else: 
+                            style_column = ""
+                        channelOfT += f"<td{style_column}> {highlight_words(row['Канал'])} </td>"
+                        pointsOfT += f"<td{style_column}> {highlight_words(row['Точки'])} </td>"
 
-                    for c in feitenbafa_day_disp.columns:
-                        feitenbafa_day_disp[c] = feitenbafa_day_disp[c].apply(highlight_words)
-                    
-                    styled_df_f = feitenbafa_day_disp.style.hide(
-                        axis="index"
-                        ).map(lambda x: f"background-color: {'yellow' if x else 'red'}", subset=current_hour_china[1]).to_html()
-
-                    return f"\
-                        {' || '.join(current_hour_china_list[1:])}\
-                        <div>\
-                            <table>\
-                                {styled_df_f}\
-                            </table>\
-                        </div>\
-                        "
+                        table = f'''
+                            <div>
+                                <table>
+                                    <tr>
+                                        {headOfT}
+                                    </tr>
+                                    <tr>
+                                        {timeOfT}
+                                    </tr>
+                                    <tr>
+                                        {channelOfT}
+                                    </tr>
+                                    <tr>
+                                        {pointsOfT}
+                                    </tr>
+                                </table>
+                            </div>
+                            '''
+                    return table
 
                 elif method=="ЛИН ГУЙ БА ФА":
-                    for_lin_gui_ba_fa = pd.read_csv("accounts/data/for_lin_gui_ba_fa.csv")
-                    
+                    for_lin_gui_ba_fa = read_files('forLinGuiBaFa')
                     sky_hands = read_files('sky_hands')
                     earth_legs = read_files('earth_legs')
-                    linguibafa = []
-                    for i in feitenbafa_day.index:
-                        summ = sky_hands[sky_hands['Иероглиф']==day_iero[0]]['i_day'].values[0] + \
-                                    sky_hands[sky_hands['Иероглиф']==feitenbafa_day.iloc[i, 0]]['i_hour'].values[0] + \
-                                    earth_legs[earth_legs['Иероглиф']==day_iero[1]]['j_day'].values[0] + \
-                                    earth_legs[earth_legs['Иероглиф']==feitenbafa_day.iloc[i, 1]]['j_hour'].values[0]
+                    resOfT = ""
+                    channelOfT = ""
+                    pointsOfT = ""
+                    namessOfT = ""
+                    for i in feitenbafa:
+                        summ = [row for row in sky_hands if row['Иероглиф']==day_iero[0]][0]['i_day'] + \
+                                    [row for row in sky_hands if row['Иероглиф']==i['Иероглиф']][0]['i_hour'] + \
+                                    [row for row in earth_legs if row['Иероглиф']==day_iero[1]][0]['j_day'] + \
+                                    [row for row in earth_legs if row['Иероглиф']==i['Иероглиф_ЗВ']][0]['j_hour']
 
                         cicle = read_files('cicle')
-                        if cicle[cicle['Иероглиф']==day_iero]['инь_ян'].values[0] == 'ян':
+                        if [row for row in cicle if row['Иероглиф']==day_iero][0]['инь_ян'] == 'ян':
                             res = summ%9
                             if res == 0:
                                 res = 9
@@ -552,55 +536,50 @@ def process_method(request):
                             res = summ%6
                             if res == 0:
                                 res = 6  
-                            
-                        linguibafa_lst = list(feitenbafa_day.iloc[i,:3].values)
-                        linguibafa_lst.extend(for_lin_gui_ba_fa[for_lin_gui_ba_fa['res']==res].values[0][1:])
-                        linguibafa.append(linguibafa_lst)
-
                         
-                    linguibafa_df = pd.DataFrame(
-                        data=linguibafa,
-                        columns=[feitenbafa_day.columns[0], feitenbafa_day.columns[1], feitenbafa_day.columns[2],"Канал", "Точка", "Название_точки"]
-                    )
+                        linguibafa_row = [row for row in for_lin_gui_ba_fa if row['res']==res][0]
 
-                    linguibafa_df[linguibafa_df.columns[1:]].T.to_csv("accounts/data/linguibafa_df_disp.csv", index=False)
-                    linguibafa_df_disp = pd.read_csv("accounts/data/linguibafa_df_disp.csv", header=1)
+                        if i["Иероглиф_ЗВ"] == current_hour_china[0]:
+                            style_column = " style='background-color: yellow;'"
+                        else:
+                            style_column = ""
+                        resOfT += f"<td{style_column}> {res} </td>"
+                        channelOfT += f"<td{style_column}> {highlight_words(linguibafa_row['0'])} </td>"
+                        pointsOfT += f"<td{style_column}> {highlight_words(linguibafa_row['point'])} </td>"
+                        namessOfT += f"<td{style_column}> {highlight_words(linguibafa_row['1'])} </td>"
 
-                    for c in linguibafa_df_disp.columns:
-                        linguibafa_df_disp[c] = linguibafa_df_disp[c].apply(highlight_words)
-                    
-                    df = linguibafa_df_disp.style.hide(axis="index")\
-                            .map(lambda x: f"background-color: {'yellow' if x else 'red'}", subset=current_hour_china[1])\
-                            .to_html()
-                        
-                    
-                    linguibafa_current_hour = linguibafa_df[linguibafa_df['Иероглиф']==current_hour_china[1]]
-                    
-                    return f"\
-                        {' || '.join(linguibafa_current_hour.iloc[0,1:].values.tolist())}\
-                        <div>\
-                            <table>\
-                                {df}\
-                            </table>\
-                        </div>\
-                        "
+                    table = f'''
+                        <div>
+                            <table>
+                                <tr>
+                                    {headOfT}
+                                </tr>
+                                <tr>
+                                    {timeOfT}
+                                </tr>
+                                <tr>
+                                    {resOfT}
+                                </tr>
+                                <tr>
+                                    {channelOfT}
+                                </tr>
+                                <tr>
+                                    {pointsOfT}
+                                </tr>
+                                <tr>
+                                    {namessOfT}
+                                </tr>
+                            </table>
+                        </div>
+                        '''
+                    return table
+    
                 elif method=="ТАЙ ЯН БА ФА":
-                    list_tai = os.listdir("accounts/data/tai_yan_ba_fa/")
+                    list_tai = os.listdir("accounts/data/taiYanBaFa/")
                     for l in list_tai:
                         if day_iero[0] in l:
-                            file=re.findall(f'(\w*{day_iero[0]}\w*.csv)', l)
-
-                    tai_yan_ba_fa = pd.read_csv(f"accounts/data/tai_yan_ba_fa/{file[0]}")
-
-                    
-                    for i in tai_yan_ba_fa.index:
-                        for j in tai_yan_ba_fa.columns:
-                            if i%2==0:
-                                tai_yan_ba_fa.iloc[i, int(j)] = tai_yan_ba_fa.iloc[i, int(j)] + " " + tai_yan_ba_fa.iloc[i+1, int(j)]
-                                
-                    df = tai_yan_ba_fa.drop(tai_yan_ba_fa.index[range(1,42, 2)], axis=0).reset_index(drop=True)
-                    df.iloc[:,0] = df.iloc[:,0].str.strip()
-                    df.iloc[:,1] = df.iloc[:,1].str.strip()
+                            file=re.findall(f'(\w*{day_iero[0]}\w*)', l)
+                    tai_yan_ba_fa = read_files(f"taiYanBaFa/{file[0]}")
                     
                     d = int(our_date.day)
                     m = int(our_date.month)
@@ -610,42 +589,76 @@ def process_method(request):
 
                     current_time_solar = datetime(y, m, d, h, mi).time()
                     
-                    for i in df.index:
-                        start_time = datetime(y, m, d, hour=int(df.iloc[i,1].split(" - ")[0].split(".")[0]), minute=int(df.iloc[i,1].split(" - ")[0].split(".")[1])).time()
-                        end_time = datetime(y, m, d, hour=int(df.iloc[i,1].split(" - ")[1].split(".")[0]), minute=int(df.iloc[i,1].split(" - ")[1].split(".")[1])).time()
+                    row_tab = ""
+                    for row in tai_yan_ba_fa:
+                        start_time = datetime(y, m, d, hour=int(row['1'].split(" - ")[0].split(".")[0]), minute=int(row['1'].split(" - ")[0].split(".")[1])).time()
+                        end_time = datetime(y, m, d, hour=int(row['1'].split(" - ")[1].split(".")[0]), minute=int(row['1'].split(" - ")[1].split(".")[1])).time()
+                        # style_column = ""
                         if (current_time_solar >= start_time) & (current_time_solar < end_time):
-                            ser = " || ".join(df.iloc[i].to_list())
-                            ind = i
-                            break
+                            style_column = " id='x-row' style='background-color: yellow;'"
+                        else:
+                            style_column = ""
+
+                        row_tab += f'''
+                            <tr{style_column}>
+                                <td> <span style='color:{color_dict[row['0']]};font-weight: bold'>{row['0']}</span> </td>
+                                <td> {row['1']} </td>
+                                <td> {highlight_words(row['2'])} </td>
+                                <td> {highlight_words(row['3'])} </td>
+                                <td> {highlight_words(row['4'])} </td>
+                                <td> {highlight_words(row['5'])} </td>
+                            </tr>
+                        '''
+
+                        table = f'''
+                            <div class=".scrollable-table;" style="height: 300px; overflow: auto;">
+                                <table>
+                                    {row_tab}
+                                </table>
+                            </div>
+                            '''
                    
-                    df_styled = df.style\
-                        .hide(axis="index", level=0)\
-                        .set_properties(**{'background-color': 'yellow'}, subset=ind).to_html()
-                    
-                   
-                    return f"\
-                        <div>На текущий час:</div>\
-                        <div>{ser}</div>\
-                        <div class='scrollable-table'>\
-                            {df_styled}\
-                        </div>\
-                        "
+                    return table
                
                 elif method=="ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА":
-                    da_syao = pd.read_csv("accounts/data/da_syao.csv")
-                    current_hour_china_list = da_syao[current_hour_china[1]].to_list()
-                    current_hour_china_str = ' || '.join(current_hour_china_list)
-                    for c in da_syao.columns:
-                        da_syao[c] = da_syao[c].apply(highlight_words)
+                    da_syao = read_files("da_syao")
+                    # current_hour_china_list = da_syao[current_hour_china[1]].to_list()
+                    # current_hour_china_str = ' || '.join(current_hour_china_list)
+                    
+                    channelOfT = ""
+                    pointsOfT = ""
+                    pointsOfT2 = ""
+                    for row in da_syao:
+                        if row["0"] == current_hour_china[0]:
+                            style_column = " style='background-color: yellow;'"
+                        else: 
+                            style_column = ""
+                        channelOfT += f"<td{style_column}> {highlight_words(row['2'])} </td>"
+                        pointsOfT += f"<td{style_column}> {highlight_words(row['3'])} </td>"
+                        pointsOfT2 += f"<td{style_column}> {highlight_words(row['4'])} </td>"
 
-                    df = da_syao.style.hide(axis="index").map(lambda x: f"background-color: {'yellow' if x else 'red'}", subset=current_hour_china[1]).to_html()
-
-                    return f"\
-                        <div>{current_hour_china_str}</div>\
-                        <table>\
-                            {df}\
-                        </table>\
-                        "        
+                        table = f'''
+                            <div>
+                                <table>
+                                    <tr>
+                                        {headOfT}
+                                    </tr>
+                                    <tr>
+                                        {timeOfT}
+                                    </tr>
+                                    <tr>
+                                        {channelOfT}
+                                    </tr>
+                                    <tr>
+                                        {pointsOfT}
+                                    </tr>
+                                    <tr>
+                                        {pointsOfT2}
+                                    </tr>
+                                </table>
+                            </div>
+                            '''
+                    return table     
                 
             result = calculate_method(selected_method)  # Замените на вашу функцию
             
