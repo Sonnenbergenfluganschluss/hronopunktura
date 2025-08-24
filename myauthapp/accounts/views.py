@@ -203,26 +203,33 @@ def process_city(request):
         
 def city_search(request):
     """API для поиска городов"""
-    cities = read_files('cities')
     try:
         query = request.GET.get('q', '').strip().lower()
-       
-        # 1. Получаем список городов из контекста (можно заменить на cache/db)
-        cit = [row["Город"] for row in cities]
         
-        # 2. Фильтрация (регистронезависимый поиск подстроки)
-        filtered = [
-            city for city in cit 
+        # Загружаем города из файла
+        cities = read_files('cities')
+        
+        # Получаем список всех городов
+        all_cities = [row["Город"] for row in cities]
+        
+        # Если запрос пустой, возвращаем пустой список или все города
+        if not query:
+            # Можно вернуть пустой список или первые N городов
+            # return JsonResponse([], safe=False, json_dumps_params={'ensure_ascii': False})
+            return JsonResponse(all_cities, safe=False, json_dumps_params={'ensure_ascii': False})
+        
+        # Фильтрация (регистронезависимый поиск подстроки)
+        filtered_cities = [
+            city for city in all_cities 
             if query in city.lower()
-        ]  # Лимит результатов
+        ][:15]  # Лимит результатов
         
-        # 3. Возвращаем JSON (отключаем ASCII-кодирование для кириллицы)
-        return JsonResponse(filtered, safe=False, json_dumps_params={'ensure_ascii': False})
+        return JsonResponse(filtered_cities, safe=False, json_dumps_params={'ensure_ascii': False})
     
     except Exception as e:
-        # Логируем ошибку и возвращаем пустой список
-        import logging
-        logging.error(f"City search error: {str(e)}")
+        # Логируем ошибку
+        logger.error(f"City search error: {str(e)}")
+        # Возвращаем пустой список в случае ошибки
         return JsonResponse([], safe=False)
 
 

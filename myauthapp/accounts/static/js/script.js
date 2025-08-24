@@ -1,100 +1,56 @@
 // static/js/script.js
-
 document.addEventListener('DOMContentLoaded', function() {
-    // ... (инициализация complexData и других переменных)
-    window.complexData = {};
-    const savedData = sessionStorage.getItem('complexData');
-    if (savedData) {
-        window.complexData = JSON.parse(savedData);
-    }
-    // Инициализация автодополнения городов
-    initCityAutocomplete();
 
-    // Настройка обработчиков с автоматическим фокусом
-    setupInputHandlersWithAutoFocus();
+    // Глобальное состояние расчета
+    window.calculationState = {
+        birthdayData: null,
+        cityData: null,
+        ourDateData: null,
+    };
+
+    // Элементы UI
+    const uiElements = {
+        birthdayInput: document.getElementById('birthdayInput'),
+        citySearch: document.getElementById('citySearch'),
+        citySelect: document.getElementById('citySelect'),
+        ourdateInput: document.getElementById('ourdateInput'),
+        methodSelect: document.getElementById('methodSelect'),
+        changeTimeCheckbox: document.getElementById('changeTime'),
+        birthdayResult: document.getElementById('birthdayResult'),
+        cityResult: document.getElementById('cityResult'),
+        checkTime: document.getElementById('checkTime'),
+        ourdateResult: document.getElementById('ourdateResult'),
+        methodResult: document.getElementById('methodResult')
+    };
+
+    // Инициализация с передачей uiElements
+    initCityAutocomplete(uiElements);
+    setupEventListeners(uiElements);
+
 });
 
-function setupInputHandlersWithAutoFocus() {
-    // 1. Обработчик для даты рождения
-    const birthdayInput = document.getElementById('birthdayInput');
-    birthdayInput?.addEventListener('keypress', async function(e) {
-        if (e.key === 'Enter') {
-            await processBirthday();
-            if (window.complexData.birthday) {
-                document.getElementById('citySearch').focus();
-            }
-        }
-    });
-
-    // 2. Обработчик для города (только по Enter)
-    const citySearch = document.getElementById('citySearch');
-    citySearch?.addEventListener('keypress', async function(e) {
-        if (e.key === 'Enter' && this.value) {
-            await submitCityHandler();
-            if (window.complexData.current_time) {
-                document.getElementById('ourdateInput').focus();
-            }
-        }
-    });
-
-    // 3. Обработчик для интересующей даты
-    const ourdateInput = document.getElementById('ourdateInput');
-    ourdateInput?.addEventListener('keypress', async function(e) {
-        if (e.key === 'Enter') {
-            await processOurdate();
-            if (window.complexData.our_date) {
-                document.getElementById('methodSelect').focus();
-            }
-        }
-    });
-
-    // 4. Обработчик для метода расчета (автоотправка)
-    const methodSelect = document.getElementById('methodSelect');
-    methodSelect?.addEventListener('change', submitMethodHandler);
-}
-
-// Функция обработки даты рождения
-async function processBirthday() {
-    const birthday = document.getElementById('birthdayInput').value;
+// --- ИНИЦИАЛИЗАЦИЯ АВТОДОПОЛНЕНИЯ ГОРОДОВ (теперь принимает uiElements) ---
+function initCityAutocomplete(uiElements) {
+    let cities = [];
     
-    if (!birthday) return;
-    
-    try {
-        const response = await fetch(window.processBirthdayUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': window.csrfToken
-            },
-            body: JSON.stringify({ birthday })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('birthdayResult').innerHTML = `<p>${data.birthday_table}</p>`;
-            window.complexData = {birthday: data.birthday_result};
-        } else {
-            alert('Ошибка: ' + data.error);
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('Произошла ошибка при отправке данных');
-    }
-}
+    // Загружаем города асинхронно
+    fetch('/city-search/?q=')
+        .then(response => response.json())
+        .then(data => {
+            cities = data;
+            console.log('Города загружены:', cities.length);
+        })
+        .catch(error => console.error('Ошибка загрузки городов:', error));
 
-function initCityAutocomplete() {
-    const cities = JSON.parse(window.citiesJson);
-    console.log('Загружено городов:', cities.length);
-    const searchInput = document.getElementById('citySearch');
-    const citySelect = document.getElementById('citySelect');
-    let selectedCity = -1;
-    
-    searchInput?.addEventListener('input', function() {
-        console.log('Ввод:', this.value);
+    uiElements.citySearch?.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase();
-        citySelect.innerHTML = '';
+        uiElements.citySelect.innerHTML = '';
         
+        if (searchTerm.length < 2) {
+            uiElements.citySelect.style.display = 'none';
+            return;
+        }
+
         const filtered = cities.filter(city => 
             city.toLowerCase().includes(searchTerm)
         ).slice(0, 15);
@@ -104,197 +60,244 @@ function initCityAutocomplete() {
                 const option = document.createElement('option');
                 option.value = city;
                 option.textContent = city;
-                citySelect.appendChild(option);
+                uiElements.citySelect.appendChild(option);
             });
-            citySelect.style.display = 'block';
+            uiElements.citySelect.style.display = 'block';
         } else {
-            citySelect.style.display = 'none';
+            uiElements.citySelect.style.display = 'none';
         }
     });
     
-    citySelect?.addEventListener('click', function() {
-        if (this.selectedIndex >= 0) {
-            searchInput.value = this.options[this.selectedIndex].value;
-            selectedCity = searchInput.value;
-            this.style.display = 'none';
+    // Обработчик выбора города из выпадающего списка
+    uiElements.citySelect?.addEventListener('click', function(e) {
+        if (e.target.tagName === 'OPTION') {
+            uiElements.citySearch.value = e.target.value;
+            uiElements.citySelect.style.display = 'none';
+            // ГОРОД ВЫБРАН -> НЕМЕДЛЕННО ОТПРАВЛЯЕМ НА СЕРВЕР
+            submitCityData(uiElements); // Теперь uiElements передается правильно
         }
     });
     
+    // Скрытие списка при клике вне его области
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.dropdown-container')) {
-            citySelect.style.display = 'none';
+            uiElements.citySelect.style.display = 'none';
         }
     });
 }
 
-async function submitCityHandler() {
-    const city = document.getElementById('citySearch').value;
-    
-    if (!city) {
-        alert('Пожалуйста, выберите город из списка');
-        return;
-    }
-    
-    const postData = { 
-        city,
-        ...window.complexData
-    };
-    
-    const response = await fetch(window.processCityUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': window.csrfToken
-        },
-        body: JSON.stringify(postData)
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-        document.getElementById('cityResult').innerHTML = `
-        <p>
-        <span class="rainbow-text">Текущее административное время:</span> 
-        <span style= "color: #4a7b9d; font-size: 16px; font-weight: bold;">${data.admin_time}</span>
-        </p>               
-        <p>
-        <span class="rainbow-text">Текущее солнечное время:</span> 
-        <span style= "color: #4a7b9d; font-size: 16px; font-weight: bold;">${data.solar_time}</span>
-        </p>
-        <p style="font-size: 12px">Рассчет по умолчанию выполняется по солнечному времени.
-        <br>Если нужен рассчет по времени административному, поставьте галочкуниже:</p>
-        `;
-        
-        if (complexData) {
-            window.complexData.current_time = data.solar_time;
+// --- НАСТРОЙКА ВСЕХ ОСНОВНЫХ ОБРАБОТЧИКОВ СОБЫТИЙ ---
+function setupEventListeners(ui) {
+    // 1. День рождения: Отправка по Enter
+    ui.birthdayInput?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            processBirthdayData(ui);
         }
-        else {
-            window.complexData = {'current_time':data.solar_time}
-        }
-        console.log('window.complexData: ', window.complexData);
-        document.getElementById('checkTime').innerHTML = `<div>Рассчетное время ${window.complexData.current_time}</div>`;
-        
-        // Обработчик изменения чекбокса
-        document.getElementById('changeTime').addEventListener('change', function() {
-            window.complexData.current_time = this.checked ? data.admin_time : data.solar_time;
-            console.log('Текущее время:', window.complexData.current_time); // Для отладки
-            document.getElementById('checkTime').innerHTML = `<div>Рассчетное время ${window.complexData.current_time}</div>`;
-        });
-        console.log('window.complexData: ', window.complexData);
-
-
-        document.getElementById('ourdateInput').disabled = false;
-    } else {
-        alert('Ошибка: ' + data.error);
-    }
-}
-
-
-function ourDateKeypressHandler(e) {
-    if (e.key === 'Enter') {
-        processOurdate();
-    }
-}
-
-async function processOurdate() {
-    const ourdate = document.getElementById('ourdateInput').value;
-    
-    if (!window.complexData) {
-        alert('window.complexData пуст');
-        return;
-    }
-    
-    const postData = {
-        ourdate: ourdate,
-        current_time: window.complexData.current_time
-    };       
-    
-    const response = await fetch(window.processOurDateUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': window.csrfToken
-        },
-        body: JSON.stringify(postData)
     });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-        document.getElementById('ourdateResult').innerHTML = `
-        <p>${data.our_date_table}</p>
-        <p>${data.str_result}</p>`;
-        
-        window.complexData.day_iero = data.day_iero;
-        window.complexData.our_date = data.our_date_result;
-        console.log('window.complexData: ', window.complexData);
-    } else {
-        alert('Ошибка: ' + data.error);
-    }
+
+    // 2. Город: Отправка по Enter (дублирует выбор из списка)
+    ui.citySearch?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim()) {
+            submitCityData(ui);
+        }
+    });
+
+    // 3. Дата расчета: Отправка по Enter
+    ui.ourdateInput?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            processOurDateData(ui);
+        }
+    });
+
+    // 4. Метод: Отправка сразу при изменении
+    ui.methodSelect?.addEventListener('change', function() {
+        processMethodData(ui);
+    });
+
+    // 5. Чекбокс времени
+    ui.changeTimeCheckbox?.addEventListener('change', function() {
+        if (window.calculationState.cityData) {
+            window.calculationState.cityData.current_time = this.checked 
+                ? window.calculationState.cityData.admin_time 
+                : window.calculationState.cityData.solar_time;
+
+            updateCityUI(ui, window.calculationState.cityData);
+
+            // Пересчитываем ВСЕ последующие этапы
+            if (window.calculationState.ourDateData) {
+                processOurDateData(ui).then(() => {
+                    // После пересчета даты пересчитываем метод, если он выбран
+                    if (ui.methodSelect.value !== " " && window.calculationState.ourDateData) {
+                        processMethodData(ui);
+                    }
+                });
+            }
+        }
+    });
 }
 
-async function submitMethodHandler() {
-    const methodIndex = document.getElementById('methodSelect').value;
+// --- ФУНКЦИЯ ОБРАБОТКИ ДНЯ РОЖДЕНИЯ ---
+async function processBirthdayData(ui) {
+    const birthday = ui.birthdayInput.value;
+    if (!birthday) return;
 
-    if (!window.complexData) {
-        alert('window.complexData пуст');
-        return;
-    }
-
-    const postData = {
-        methodIndex: methodIndex,
-        ...window.complexData,
-    };
-    console.log('postData: ', postData);
-    
     try {
-        const response = await fetch(window.processMethodUrl, {
+        const response = await fetch(window.processBirthdayUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': window.csrfToken
-            },
-            body: JSON.stringify(postData)
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.csrfToken },
+            body: JSON.stringify({ birthday })
         });
-        
         const data = await response.json();
         
         if (data.success) {
-            const methodResult = document.getElementById('methodResult');
-            methodResult.innerHTML = `
+            window.calculationState.birthdayData = data;
+            ui.birthdayResult.innerHTML = `<p>${data.birthday_table}</p>`;
+            ui.citySearch.focus();
+        } else {
+            alert('Ошибка (ДР): ' + data.error);
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при отправке данных (ДР)');
+    }
+}
+
+// --- ФУНКЦИЯ ОБРАБОТКИ ГОРОДА ---
+async function submitCityData(ui) {
+    const city = ui.citySearch.value;
+    if (!city) return;
+
+    try {
+        const response = await fetch(window.processCityUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.csrfToken },
+            body: JSON.stringify({ city })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            window.calculationState.cityData = data;
+            updateCityUI(ui, data);
+            ui.ourdateInput.disabled = false;
+            ui.ourdateInput.focus();
+
+            // АВТОМАТИЧЕСКИ ПЕРЕСЧИТЫВАЕМ ДАТУ И МЕТОД, ЕСЛИ ОНИ УЖЕ ВВЕДЕНЫ
+            if (window.calculationState.ourDateData) {
+                processOurDateData(ui).then(() => {
+                    recalculateMethodIfNeeded(ui);
+                });
+            }
+
+        } else {
+            alert('Ошибка (Город): ' + data.error);
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при отправке данных (Город)');
+    }
+}
+
+// --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ UI ГОРОДА ---
+function updateCityUI(ui, data) {
+    const isAdminTime = ui.changeTimeCheckbox.checked;
+    const currentTimeToUse = isAdminTime ? data.admin_time : data.solar_time;
+
+    ui.cityResult.innerHTML = `
+        <p><span class="rainbow-text">Текущее административное время:</span> 
+        <span style="color: #4a7b9d; font-size: 16px; font-weight: bold;">${data.admin_time}</span></p>               
+        <p><span class="rainbow-text">Текущее солнечное время:</span> 
+        <span style="color: #4a7b9d; font-size: 16px; font-weight: bold;">${data.solar_time}</span></p>
+        <p style="font-size: 12px">Рассчет по умолчанию выполняется по солнечному времени.
+        <br>Если нужен рассчет по времени административному, поставьте галочку ниже:</p>
+    `;
+    ui.checkTime.innerHTML = `<div>Рассчетное время: <strong>${currentTimeToUse}</strong></div>`;
+
+    data.current_time = currentTimeToUse;
+}
+
+// --- ФУНКЦИЯ ОБРАБОТКИ ДАТЫ РАСЧЕТА ---
+async function processOurDateData(ui) {
+    const ourdate = ui.ourdateInput.value;
+    if (!ourdate || !window.calculationState.cityData) return;
+
+    const postData = {
+        ourdate: ourdate,
+        current_time: window.calculationState.cityData.current_time
+    };
+
+    try {
+        const response = await fetch(window.processOurDateUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.csrfToken },
+            body: JSON.stringify(postData)
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            window.calculationState.ourDateData = data;
+            ui.ourdateResult.innerHTML = `<p>${data.our_date_table}</p><p>${data.str_result}</p>`;
+            ui.methodSelect.focus();
+
+            // АВТОМАТИЧЕСКИ ПЕРЕСЧИТЫВАЕМ МЕТОД, ЕСЛИ ОН УЖЕ ВЫБРАН
+            recalculateMethodIfNeeded(ui);
+
+        } else {
+            alert('Ошибка (Дата): ' + data.error);
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при отправке данных (Дата)');
+    }
+}
+
+// --- ФУНКЦИЯ ОБРАБОТКИ МЕТОДА ---
+async function processMethodData(ui) {
+    const methodIndex = ui.methodSelect.value;
+    if (methodIndex === " " || !window.calculationState.ourDateData || !window.calculationState.cityData) return;
+
+    const postData = {
+        methodIndex: methodIndex,
+        our_date: window.calculationState.ourDateData.our_date_result,
+        day_iero: window.calculationState.ourDateData.day_iero,
+        current_time: window.calculationState.cityData.current_time
+    };
+
+    try {
+        const response = await fetch(window.processMethodUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.csrfToken },
+            body: JSON.stringify(postData)
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            window.calculationState.methodData = data;
+            ui.methodResult.innerHTML = `
                 <div>
                     <h4>Метод: ${data.method}</h4>
                     <div>${data.result}</div>
                 </div>
             `;
-            
-            methodResult.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center' // или 'start', 'center', 'end'
-            });
-            
+            ui.methodResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
-            const methodResult = document.getElementById('methodResult');
-            methodResult.innerHTML = `
-                <div class="alert alert-danger">
-                    Ошибка: ${data.error}
-                </div>
-            `;
-            methodResult.focus();
+            ui.methodResult.innerHTML = `<div class="alert alert-danger">Ошибка: ${data.error}</div>`;
+            ui.methodResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     } catch (error) {
-        const methodResult = document.getElementById('methodResult');
-        methodResult.innerHTML = `
-            <div class="alert alert-danger">
-                Ошибка сети: ${error.message}
-            </div>
-        `;
-        methodResult.focus();
+        console.error('Ошибка:', error);
+        ui.methodResult.innerHTML = `<div class="alert alert-danger">Ошибка сети: ${error.message}</div>`;
+        ui.methodResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
 
-
-// Сохранение данных при перезагрузке страницы
-window.addEventListener('beforeunload', function() {
-    sessionStorage.setItem('complexData', JSON.stringify(window.complexData));
-});
+// --- ФУНКЦИЯ ДЛЯ ПЕРЕСЧЕТА МЕТОДА ПРИ ИЗМЕНЕНИИ ДАННЫХ ---
+function recalculateMethodIfNeeded(ui) {
+    // Если метод уже выбран и есть все необходимые данные - пересчитываем
+    if (ui.methodSelect.value !== " " && 
+        window.calculationState.ourDateData && 
+        window.calculationState.cityData) {
+        
+        console.log('Автоматический пересчет метода из-за изменения данных...');
+        processMethodData(ui);
+    }
+}

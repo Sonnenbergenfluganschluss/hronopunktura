@@ -126,6 +126,8 @@
         window.processMethodUrl = "{% url 'process_method' %}";
         window.csrfToken = "{{ csrf_token }}";
         window.citiesJson = '{{ cities_json|safe }}';
+        window.citySearchUrl = "{% url 'city_search' %}";
+
     </script>
     <script src="{% static 'js/script.js' %}"></script>
 
