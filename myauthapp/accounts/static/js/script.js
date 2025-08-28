@@ -102,12 +102,8 @@ function setupEventListeners(ui) {
         }
     });
 
-    // 3. Дата расчета: Отправка по Enter
-    ui.ourdateInput?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            processOurDateData(ui);
-        }
-    });
+    // 3. Дата расчета: КОМБИНИРОВАННАЯ обработка
+    setupDateInputHandling(ui);
 
     // 4. Метод: Отправка сразу при изменении
     ui.methodSelect?.addEventListener('change', function() {
@@ -220,35 +216,123 @@ async function processOurDateData(ui) {
     const ourdate = ui.ourdateInput.value;
     if (!ourdate || !window.calculationState.cityData) return;
 
+    // Проверка на валидность даты
+    if (!ourdate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        console.log('Неверный формат даты');
+        return;
+    }
+
     const postData = {
         ourdate: ourdate,
         current_time: window.calculationState.cityData.current_time
     };
 
     try {
+        // Показываем индикатор загрузки
+        ui.ourdateResult.innerHTML = '<div class="loading">Загрузка...</div>';
+        
         const response = await fetch(window.processOurDateUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.csrfToken },
             body: JSON.stringify(postData)
         });
+        
         const data = await response.json();
         
         if (data.success) {
             window.calculationState.ourDateData = data;
             ui.ourdateResult.innerHTML = `<p>${data.our_date_table}</p><p>${data.str_result}</p>`;
-            ui.methodSelect.focus();
-
-            // АВТОМАТИЧЕСКИ ПЕРЕСЧИТЫВАЕМ МЕТОД, ЕСЛИ ОН УЖЕ ВЫБРАН
+            
+            // Автоматически пересчитываем метод, если он уже выбран
             recalculateMethodIfNeeded(ui);
-
+            
         } else {
-            alert('Ошибка (Дата): ' + data.error);
+            ui.ourdateResult.innerHTML = `<div class="error">Ошибка: ${data.error}</div>`;
         }
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Произошла ошибка при отправке данных (Дата)');
+        ui.ourdateResult.innerHTML = `<div class="error">Ошибка сети: ${error.message}</div>`;
     }
 }
+
+
+// --- УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ ОБРАБОТКИ ВВОДА ДАТЫ ---
+function setupDateInputHandling(ui) {
+    let dateInputTimeout = null;
+    const DEBOUNCE_DELAY = 800; // Задержка для ручного ввода
+    let lastProcessedValue = ''; // Для отслеживания уже обработанных значений
+
+    // Функция для валидации даты
+    function isValidDate(dateString) {
+        const regex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!regex.test(dateString)) return false;
+        
+        const date = new Date(dateString);
+        return date instanceof Date && !isNaN(date);
+    }
+
+    // Функция обработки даты (с проверкой на дублирование)
+    function handleDateProcessing() {
+        const currentValue = ui.ourdateInput.value;
+        
+        // Проверяем, что значение изменилось и оно валидно
+        if (currentValue && currentValue !== lastProcessedValue && isValidDate(currentValue)) {
+            lastProcessedValue = currentValue;
+            processOurDateData(ui);
+        }
+    }
+
+    // 1. Обработчик нажатия Enter
+    ui.ourdateInput?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Предотвращаем стандартное поведение
+            if (dateInputTimeout) {
+                clearTimeout(dateInputTimeout); // Отменяем ожидающий таймаут
+                dateInputTimeout = null;
+            }
+            handleDateProcessing();
+        }
+    });
+
+    // 2. Обработчик изменения (для выбора из datepicker)
+    ui.ourdateInput?.addEventListener('change', function() {
+        if (dateInputTimeout) {
+            clearTimeout(dateInputTimeout);
+            dateInputTimeout = null;
+        }
+        handleDateProcessing();
+    });
+
+    // 3. Обработчик ввода с дебаунсингом (для ручного ввода без Enter)
+    ui.ourdateInput?.addEventListener('input', function() {
+        // Очищаем предыдущий таймаут
+        if (dateInputTimeout) {
+            clearTimeout(dateInputTimeout);
+        }
+
+        // Устанавливаем новый таймаут для обработки после паузы ввода
+        dateInputTimeout = setTimeout(() => {
+            handleDateProcessing();
+            dateInputTimeout = null;
+        }, DEBOUNCE_DELAY);
+    });
+
+    // 4. Обработчик потери фокуса (на случай, если пользователь ввел и перешел дальше)
+    ui.ourdateInput?.addEventListener('blur', function() {
+        if (dateInputTimeout) {
+            clearTimeout(dateInputTimeout); // Отменяем таймаут, если он есть
+            dateInputTimeout = null;
+            handleDateProcessing(); // Немедленная обработка
+        }
+    });
+
+    // 5. Дополнительно: обработка клика по календарной иконке (для некоторых браузеров)
+    ui.ourdateInput?.addEventListener('click', function() {
+        // Некоторые браузеры показывают календарь при клике на поле
+        // Можно добавить дополнительную логику если нужно
+    });
+}
+
 
 // --- ФУНКЦИЯ ОБРАБОТКИ МЕТОДА ---
 async function processMethodData(ui) {

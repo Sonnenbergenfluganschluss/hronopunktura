@@ -313,8 +313,8 @@ def process_our_date(request):
             ses = [row for row in day_sky_veto if row['сезон']==n_season][0]
             if ((day_iero[0]=='戊') or (day_iero[0]=='己')) and ((zya_zy==ses['ЦзяЦзы1']) or (zya_zy==ses['ЦзяЦзы2'])):
                 str_veto = f"\
-                    \n1 <span style='color: red;'>{ses['ЗАПРЕТЫ']}</span> \
-                    \n2 <span style='color: red;'>Точки инь и ян каналов в области живота (ниже диафрагмы)</span>"
+                    <br>1. <span style='color: red;'>{ses['ЗАПРЕТЫ']}</span> \
+                    <br>2. <span style='color: red;'>Точки инь и ян каналов в области живота (ниже диафрагмы)</span>"
             elif (day_iero[0]=='戊') or (day_iero[0]=='己'):
                 str_veto = "<span style='color: red;'>Точки инь и ян каналов в области живота (ниже диафрагмы)</span>"
             elif (zya_zy==ses['ЦзяЦзы1']) or (zya_zy==ses['ЦзяЦзы2']):
@@ -326,18 +326,18 @@ def process_our_date(request):
             sky_hands = read_files('sky_hands')
             earth_legs = read_files('earth_legs')
             str_result = f"<div><p>День: <span style='font-weight: bold;'>{in_yan_day.capitalize()}</span>\
-                        \n<br>ЦзяЦзы дня: № <span style='font-weight: bold; color: #1e88e5;'>{zya_zy}</span>\
-                        # \n<br>Точки 24 Сезонов (Жэнь май): <span style='color: #1e88e5;'>{season['Символ']} || {season['Название']} || {season['Точки_Жэнь_май']} || {season['Название_точки']}</span>\
-                        \n<br>День недели: <span style='font-weight: bold;'>{dow_dict[our_date_date.weekday()]}</span>\
-                        \n<br>Планета-покровитель: <span style='color: #3d7945; font-weight: bold;'>{planet.capitalize()}</span>\
-                        \n<br><span style='font-style: italic;'>Запрет по 4 сезонам:</span> <span style='font-weight: bold;'>{[row for row in veto if row['месяц']==month_iero[1]][0]['запрет']}</span>\
-                        \n<br><span style='font-style: italic;'>Запреты на ручные каналы:</span>\
-                        \n  <br><span style='font-weight: bold; color: red;'>{[row for row in sky_hands if row['Иероглиф']==day_iero[0]][0]['канал']}</span>, \
+                        <br>ЦзяЦзы дня: № <span style='font-weight: bold; color: #1e88e5;'>{zya_zy}</span>\
+                        <br>Точки 24 Сезонов (Жэнь май): <span style='color: #1e88e5;'>{season['Символ']} || {season['Название']} || {season['Точки_Жэнь_май']} || {season['Название_точки']}</span>\
+                        <br>День недели: <span style='font-weight: bold;'>{dow_dict[our_date_date.weekday()]}</span>\
+                        <br>Планета-покровитель: <span style='color: #3d7945; font-weight: bold;'>{planet.capitalize()}</span>\
+                        <br><span style='font-style: italic;'>Запрет по 4 сезонам:</span> <span style='font-weight: bold;'>{[row for row in veto if row['месяц']==month_iero[1]][0]['запрет']}</span>\
+                        <br><span style='font-style: italic;'>Запреты на ручные каналы:</span>\
+                        <br><span style='font-weight: bold; color: red;'>{[row for row in sky_hands if row['Иероглиф']==day_iero[0]][0]['канал']}</span>, \
                                 <span style='font-weight: bold;'>{[row for row in sky_hands if row['Иероглиф']==day_iero[0]][0]['сторона_тела']} сторона:  пять точек транспортировки и точки между ними (до локтя)</span>\
-                        \n<br><span style='font-style: italic;'>Запреты на ножные каналы:</span>\
-                        \n  <br><span style='font-weight: bold; color: red;'>{[row for row in earth_legs if row['Иероглиф']==month_iero[1]][0]['канал']}</span>, \
-                                <span style='font-weight: bold; '>{[row for row in earth_legs if row['Иероглиф']==month_iero[1]][0]['сторона_тела']} сторона: пять точек транспортировки и точки между ними (до колена)</span>\
-                        \n<br><span style='font-style: italic;'>Дни небесного запрета:</span> {str_veto}</p></div>"
+                        <br><span style='font-style: italic;'>Запреты на ножные каналы:</span>\
+                        <br><span style='font-weight: bold; color: red;'>{[row for row in earth_legs if row['Иероглиф']==month_iero[1]][0]['канал']}</span>, \
+                              <span style='font-weight: bold; '>{[row for row in earth_legs if row['Иероглиф']==month_iero[1]][0]['сторона_тела']} сторона: пять точек транспортировки и точки между ними (до колена)</span>\
+                        <br><span style='font-style: italic;'>Дни небесного запрета:</span> {str_veto}</p></div>"
             
             result = {
                 'success': True,
@@ -428,7 +428,7 @@ def process_method(request):
                     for k, v in moon_palace.items():
                         if our_date.year in v:
                             first_step = k
-                    if (our_date.year in vis_yaer) & (our_date > datetime.strptime(f"{our_date.year}-02-28", "%Y-%m-%d").date()):
+                    if (our_date.year in vis_yaer) & (our_date > datetime.strptime(f"{our_date.year}-03-01", "%Y-%m-%d").date()):
                         first_step = first_step+1
                     lunar_day = first_step + sec_step[our_date.month]+ our_date.day
 
