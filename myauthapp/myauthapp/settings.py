@@ -161,3 +161,15 @@ CACHES = {
         }
     }
 }
+
+# Настройки сброса пароля
+PASSWORD_RESET_TIMEOUT = 86400  # 24 часа в секундах
+
+# Настройки сайта (обязательно для ссылок в письмах)
+SITE_ID = 1
+SITE_NAME = "My Auth App"
+SITE_DOMAIN = "localhost:8000"  # Ваш реальный домен
+
+# Для разработки можно использовать
+if DEBUG:
+    SITE_DOMAIN = "localhost:8000"

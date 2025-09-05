@@ -2,24 +2,33 @@
 {% load static %}
 
 {% block title %}Главная{% endblock %}
+
 {% block header %}
     Калькулятор Ба Цзы
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <!-- {% if request.META.HTTP_USER_AGENT and 'Android' in request.META.HTTP_USER_AGENT %} -->
     <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/mobile.css'%}" type="text/css">
+    <!-- {% else %}
+    <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+    {% endblock if %} -->
+
 {% endblock %}
     
 {% block content %}
 {% if user.is_authenticated %}
+{% if request.META.HTTP_USER_AGENT and 'Android' in request.META.HTTP_USER_AGENT %}
+    <!-- Для смартфона используем мобильную версию -->
     
     <p style="padding-left: 20px;">Сегодня: <strong>{{ current_date_show }}</strong></p>
     
     <!-- Форма для даты -->
     <div class="container">
         <label>Введите дату рождения
-            <input type="date" id="birthdayInput" value="{{ current_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" required>
+            <input type="text" id="birthdayInput" value="{{ user.get_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" required>
         </label>
-        <div id="birthdayResult"></div>
     </div>
+        <button id="submitBirthday">Отправить дату</button>
+        <div id="birthdayResult"></div>
     
     <!-- Форма для города (блокируется пока не отправлена дата) -->
     <div class="container">
@@ -33,7 +42,7 @@
                 </select>
             <div>
         </div>
-        <!-- <button id="submitCity" >Отправить город</button> -->
+        <button id="submitCity" >Отправить город</button>
         <div id="cityResult"></div>
         <label>
             <input type="checkbox" id="changeTime"> Нужен расчёт по административному времени
@@ -46,7 +55,7 @@
         <label>Введите интересующую дату
             <input type="date" id="ourdateInput" value="{{ current_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" disabled required>
         </label>
-        <!-- <button id="submitOurdate">Отправить дату</button> -->
+        <button id="submitOurdate">Отправить дату</button>
         <div id="ourdateResult"></div>
     </div>
 
@@ -77,10 +86,136 @@
                 {% endfor %}
             </select>
         </div>
-        <!-- <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button> -->
+        <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button>
         <div id="methodResult" class="mt-3"></div>
     </div>
+
+    <script src="{% static 'js/mobile.js' %}"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+{% else %}
+<div class="container">  
+    <section class="my-5">
+        <h2>Бесплатный контент</h2>
+        <p>Этот раздел доступен всем пользователям.</p>
+        <p>Сегодня: <strong>{{ current_date_show }}</strong></p>
+
+        <!-- Форма для даты -->
+        <div class="container">
+            <label>Введите дату рождения
+                <input type="date" id="birthdayInput" value="{{ user.get_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" required>
+            </label>
+            <div id="birthdayResult"></div>
+        </div>
         
+        <!-- Форма для города  -->
+        <div class="container">
+            <label for="citySelect">Введите город:</label>
+            <div>
+                <input type="text" id="citySearch" placeholder="Начните вводить..." value="{{ user.city }}"
+                    autocomplete="on" style="width: 100%; background-color: #eeeeee;">
+                </div>
+                    <select id="citySelect" size="5" style="display: none;">
+                        <!-- Варианты будут добавляться динамически -->
+                    </select>
+                <div>
+            </div>
+            <div id="cityResult"></div>
+            <label>
+                <input type="checkbox" id="changeTime"> Нужен расчёт по административному времени
+            </label>
+            <div id="checkTime"></div>
+        </div>
+    </section>
+
+    <!-- Премиум контент -->
+    <h2>Эксклюзивные материалы</h2>
+    {% if not user.subscriptions.first.is_active %}
+        <div class="full-access">
+            <p>Этот контент доступен только подписчикам. <a href="{% url 'payments:tariff_list' %}">Оформите подписку</a> для полного доступа.</p>
+        </div>
+    {% endif %}
+    <section class="my-5">
+            
+        <div class="premium-content">
+            
+            {% if has_active_subscription %}
+                <!-- Полный доступ для подписчиков -->
+                <div class="full-access">
+                    <p>Спасибо за подписку! Вот ваш эксклюзивный контент:</p>
+                    <!-- Ваш премиум-контент здесь -->
+                    <div class="container">
+                        <label>Введите интересующую дату
+                            <input type="date" id="ourdateInput" value="{{ current_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" disabled required>
+                        </label>
+                        <!-- <button id="submitOurdate">Отправить дату</button> -->
+                        <div id="ourdateResult"></div>
+                    </div>
+                
+                    <div class="container">
+                        <label for="methodSelect">Выберите метод расчета:</label>
+                        <div>
+                            <select id="methodSelect" style="width: 100%;
+                                                            border: none;
+                                                            background-color: #eeeeee;
+                                                            border-radius: 10px;
+                                                            text-align: center; 
+                                                            height: 40px; 
+                                                            font-size: 16px;
+                                                        ">
+                                {% for method in methods %}
+                                    <option value="{{ forloop.counter0 }}" style="width: 100%;
+                                                            max-width: var(--max-width);
+                                                            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                                                            font-size: 16px;
+                                                            font-weight: bold;
+                                                            color: #4e4d4d;
+                                                            color-scheme: gray;
+                                                            background-color: white;
+                                                            box-shadow: #4e4d4d;
+                                                            border-radius: 10px;
+                                                            margin-top: 2px;
+                                                        ">{{ method }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button> -->
+                        <div id="methodResult" class="mt-3" tabindex="-1"></div>
+                        <div id="compiled" class="container" >   </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Ограниченный просмотр для неподписчиков -->
+                <div class="limited-view">
+                    <div class="preview">
+                        <!-- Пример превью контента -->
+                        <p>Здесь показана небольшая часть материала...</p>
+                        <div class="blur-overlay"></div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>  
+    <!-- Для остальных устройств обычную версию -->
+    <script src="{% static 'js/script.js' %}"></script>
+{% endif %}
+        
+    
     <script>
         // Передаем Django-переменные в JavaScript
         window.processBirthdayUrl = "{% url 'process_birthday' %}";
@@ -89,12 +224,14 @@
         window.processMethodUrl = "{% url 'process_method' %}";
         window.csrfToken = "{{ csrf_token }}";
         window.citiesJson = '{{ cities_json|safe }}';
+        window.citySearchUrl = "{% url 'city_search' %}";
+
     </script>
     <script src="{% static 'js/script.js' %}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
 
-    
+     
     {% else %}
     <div style="text-align: center; margin: 30px 0;">
         <p>Для доступа к системы требуется авторизация</p>

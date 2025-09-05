@@ -175,6 +175,7 @@ def process_city(request):
         try:
             data = json.loads(request.body)
             city = data.get('city')
+            city = city.capitalize()
             cit = [row["Город"] for row in cities]
             if city in cit:
                 row_cit = [row for row in cities if row["Город"]==city][0]

@@ -1,0 +1,46 @@
+/* Исправления для Chrome и Yandex на Android */
+.chrome-yandex-fix input,
+.chrome-yandex-fix select,
+.chrome-yandex-fix textarea {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Исправление для всплывающей клавиатуры */
+.chrome-yandex-fix .form-control:focus {
+    transform: none;
+}
+
+/* Исправление скролла */
+.chrome-yandex-fix #citySelect {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    max-height: 50vh;
+}
+
+/* Исправление кликов на мобильных устройствах */
+.chrome-yandex-fix .city-option {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+/* Исправление анимаций */
+.chrome-yandex-fix * {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Исправление для предотвращения масштабирования */
+.chrome-yandex-fix input[type="date"],
+.chrome-yandex-fix input[type="text"],
+.chrome-yandex-fix select {
+    font-size: 16px !important; /* Предотвращает зум в iOS, но помогает и в Android */
+}
+
+/* Исправление для dropdown */
+.chrome-yandex-fix .dropdown-container {
+    position: relative;
+    z-index: 1000;
+}
