@@ -725,7 +725,6 @@ def profile(request):
 
 
 
-
 def index(request):
     cities = read_files('cities')
     cit = cities["Город"].values.tolist()

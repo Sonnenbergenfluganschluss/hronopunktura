@@ -15,7 +15,7 @@ urlpatterns = [
      path('accounts/register/', views.register, name='register'),
      path('accounts/profile/', views.profile, name='profile'),
      path('city-search/', views.city_search, name='city_search'),
-     path('accounts/password_reset/', 
+     path('password_reset/', 
           auth_views.PasswordResetView.as_view(
                template_name='accounts/password_reset.html',
                email_template_name='registration/password_reset_email.html',
@@ -23,13 +23,13 @@ urlpatterns = [
                success_url='/password_reset/done/'
           ), 
           name='password_reset'),
-     path('accounts/password_reset/done/', 
+     path('password_reset/done/', 
           auth_views.PasswordResetDoneView.as_view(template_name='accounts/password_reset_done.html'), 
           name='password_reset_done'),
-     path('accounts/reset/<uidb64>/<token>/', 
+     path('reset/<uidb64>/<token>/', 
           auth_views.PasswordResetConfirmView.as_view(template_name='accounts/password_reset_confirm.html'), 
           name='password_reset_confirm'),
-     path('accounts/reset/done/', 
+     path('reset/done/', 
           auth_views.PasswordResetCompleteView.as_view(template_name='accounts/password_reset_complete.html'), 
           name='password_reset_complete'),
 

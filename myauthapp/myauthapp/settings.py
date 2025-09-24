@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-m3%!16-+$j*%-!n6l=s3id^oo_qfsm^sx#=eo#s_9fz6^xdiib'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -171,5 +171,13 @@ SITE_NAME = "My Auth App"
 SITE_DOMAIN = "localhost:8000"  # Ваш реальный домен
 
 # Для разработки можно использовать
-if DEBUG:
-    SITE_DOMAIN = "localhost:8000"
+# if DEBUG:
+#     SITE_DOMAIN = "localhost:8000"
+
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT'))
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')

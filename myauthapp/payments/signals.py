@@ -20,6 +20,6 @@ def notify_on_subscription_end(sender, instance, **kwargs):
             send_mail(
                 "Подписка завершена",
                 f"Ваша подписка {instance.tariff.name} закончилась.",
-                "noreply@example.com",
+                "email@хронопунктура.рф",
                 [instance.user.email]
             )

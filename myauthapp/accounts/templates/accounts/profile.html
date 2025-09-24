@@ -18,6 +18,8 @@
         </div>
         {% csrf_token %}
         {{ form.as_p }}
+        <a href="{% url 'password_reset' %}">Сменить пароль</a> | 
+
     </form>
     <div style="display: grid; grid-auto-flow: column;">
         <div>
