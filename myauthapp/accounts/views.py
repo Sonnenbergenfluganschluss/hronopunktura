@@ -1,17 +1,26 @@
-# from asyncio.log import logger
 import json
-# import pandas as pd
+import csv
 from datetime import datetime, timedelta, date
 import re
 import os
 from itertools import cycle
 import logging
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse  # если нужен AJAX
-from .forms import CustomUserCreationForm, CustomUserChangeForm
+from .forms import RegisterForm, CustomUserChangeForm
+from .models import CustomUser
+
 from payments.models import Tariff
+from django.contrib.auth.models import User
+from django.template.loader import render_to_string
+import uuid
+from django.core.mail import send_mail, EmailMessage
+from django.conf import settings
+
+# loc_path = '/home/h/hronopunrf/newsite/public_html/myauthapp/'
+loc_path = ''
 
 # Настройка логгера
 logger = logging.getLogger(__name__)
@@ -54,15 +63,58 @@ woman = ["Gb.41", "Gb.44", "Gb.34", "Gb.37/Liv.3", "Liv.5/Gb.40", "Gb.38", "Gb.4
     "Co.3", "Co.1", "Co.11", "Co.6/Lu.9", "Co4/Lu.7", "Co.5", "Co.2", 
     "Si.3", "Si.1", "Si.8", "Si.7/Ht.7/Hg.7", "Ht.5/Hg.6/Si.4", "Si.5", "Si.2"]
 
+
 orange = '#ad5c0a'
 
 color_dict = {'甲':'green', '乙':'green', '丙':'red', '丁':'red', '戊':f'{orange}', '己':f'{orange}', '庚':'grey', '辛':'grey', '壬':'blue', '癸':'blue',
                 '子':'blue', '丑':f'{orange}', '寅':'green', '卯':'green', '辰':f'{orange}', '巳':'red', '午':'red', '未':f'{orange}', '申':'grey', '酉':'grey', '戌':f'{orange}', '亥':'blue'}
 
+
 color_dict_earth = {'子':'blue', '丑':f'{orange}', '寅':'green', '卯':'green', '辰':f'{orange}', '巳':'red', '午':'red', '未':f'{orange}', '申':'grey', '酉':'grey', '戌':f'{orange}', '亥':'blue'}
 
+
+dolgoletie = {
+    'ду-май':'жень-май',
+    'чун-май':'дай-май',
+    'чонг-май':'дай-май',
+    'инь-цзяо':'ян-цзяо',
+    'инь-вэй':'ян-вэй',
+    'жень-май':'ду-май',
+    'жэнь-май':'ду-май',
+    'дай-май':'чонг-май',
+    'ян-цзяо':'инь-цзяо',
+    'ян-вэй':'инь-вэй',
+}
+
+skydoc = {
+    'ду-май':'ян-цзяо',
+    'чун-май':'инь-вэй',
+    'чонг-май':'инь-вэй',
+    'инь-цзяо':'жень-май',
+    'ян-вэй':'дай-май',
+    'ян-цзяо':'ду-май',
+    'инь-вэй':'чонг-май',
+    'жень-май':'инь-цзяо',
+    'жэнь-май':'инь-цзяо',
+    'дай-май':'ян-вэй',
+}
+
+birthqi = {
+    'ду-май':'инь-цзяо',
+    'чун-май':'ян-вэй',
+    'чонг-май':'ян-вэй',
+    'жень-май':'ян-цзяо',
+    'жэнь-май':'ян-цзяо',
+    'инь-вэй':'дай-май',
+    'инь-цзяо':'ду-май',
+    'ян-вэй':'чонг-май',
+    'ян-цзяо':'жень-май',
+    'дай-май':'инь-вэй',
+}
+
+
 def read_files(table_name):
-    with open(f"accounts/data/{table_name}.json", encoding='utf-8') as f: # Открываем файл и связываем его с объектом "f"
+    with open(f"{loc_path}accounts/data/{table_name}.json", encoding='utf-8') as f: # Открываем файл и связываем его с объектом "f"
         table = json.load(f)
     return table
 
@@ -244,7 +296,6 @@ def process_our_date(request):
             our_date = data.get('ourdate')
             our_date_date = datetime.strptime(our_date, '%Y-%m-%d')
             get_our_date = [row for row in calendar if row['date'] == our_date_date.date().strftime('%Y-%m-%d')][0]
-            print(get_our_date)
             if datetime.strptime(our_date, '%Y-%m-%d').date() < datetime.strptime(seasons[2][str(datetime.strptime(our_date, '%Y-%m-%d').year)], '%Y-%m-%d').date():
                 year_o = [row for row in calendar if row['date'] == (our_date_date-timedelta(days=51)).date().strftime('%Y-%m-%d')][0]['years']
             else:
@@ -333,11 +384,11 @@ def process_our_date(request):
                         <br>Планета-покровитель: <span style='color: #3d7945; font-weight: bold;'>{planet.capitalize()}</span>\
                         <br><span style='font-style: italic;'>Запрет по 4 сезонам:</span> <span style='font-weight: bold;'>{[row for row in veto if row['месяц']==month_iero[1]][0]['запрет']}</span>\
                         <br><span style='font-style: italic;'>Запреты на ручные каналы:</span>\
-                        <br><span style='font-weight: bold; color: red;'>{[row for row in sky_hands if row['Иероглиф']==day_iero[0]][0]['канал']}</span>, \
+                          <br><span style='font-weight: bold; color: red;'>{[row for row in sky_hands if row['Иероглиф']==day_iero[0]][0]['канал']}</span>, \
                                 <span style='font-weight: bold;'>{[row for row in sky_hands if row['Иероглиф']==day_iero[0]][0]['сторона_тела']} сторона:  пять точек транспортировки и точки между ними (до локтя)</span>\
                         <br><span style='font-style: italic;'>Запреты на ножные каналы:</span>\
                         <br><span style='font-weight: bold; color: red;'>{[row for row in earth_legs if row['Иероглиф']==month_iero[1]][0]['канал']}</span>, \
-                              <span style='font-weight: bold; '>{[row for row in earth_legs if row['Иероглиф']==month_iero[1]][0]['сторона_тела']} сторона: пять точек транспортировки и точки между ними (до колена)</span>\
+                                <span style='font-weight: bold; '>{[row for row in earth_legs if row['Иероглиф']==month_iero[1]][0]['сторона_тела']} сторона: пять точек транспортировки и точки между ними (до колена)</span>\
                         <br><span style='font-style: italic;'>Дни небесного запрета:</span> {str_veto}</p></div>"
             
             result = {
@@ -400,9 +451,9 @@ def process_method(request):
                     headOfT += f"<th{style_column}> <span style='color:{color_dict[row['Иероглиф_ЗВ']]};font-weight: bold'>{row['Иероглиф_ЗВ']}</span> </th>"
                     timeOfT += f"<td{style_column}> {highlight_words(row['Время'])} </td>"                
                                 
+
                 
                 if method=="ЛУННЫЕ ДВОРЦЫ":
-
                     import base64
                     from PIL import Image
                     from io import BytesIO
@@ -423,13 +474,13 @@ def process_method(request):
                     def image_formatter(im):
                         return f'<img src="data:image/png; base64,{image_base64(im)}" style="width: 30%; display: block; margin: 0 auto;">'
 
-                    path_yan = 'accounts/data/images/yan.jpg'
-                    path_in = 'accounts/data/images/in.jpg'
+                    path_yan = f'{loc_path}accounts/data/images/yan.jpg'
+                    path_in = f'{loc_path}accounts/data/images/in.jpg'
 
                     for k, v in moon_palace.items():
                         if our_date.year in v:
                             first_step = k
-                    if (our_date.year in vis_yaer) & (our_date > datetime.strptime(f"{our_date.year}-03-01", "%Y-%m-%d").date()):
+                    if (our_date.year in vis_yaer) & (our_date >= datetime.strptime(f"{our_date.year}-03-01", "%Y-%m-%d").date()):
                         first_step = first_step+1
                     lunar_day = first_step + sec_step[our_date.month]+ our_date.day
 
@@ -583,11 +634,19 @@ def process_method(request):
                     return table
     
                 elif method=="ТАЙ ЯН БА ФА":
-                    list_tai = os.listdir("accounts/data/taiYanBaFa/")
+                    list_tai = ['丁壬', '丙辛', '乙庚', '戊癸', '甲己']
+                    file = []
                     for l in list_tai:
                         if day_iero[0] in l:
-                            file=re.findall(f'(\w*{day_iero[0]}\w*)', l)
-                    tai_yan_ba_fa = read_files(f"taiYanBaFa/{file[0]}")
+                            file.append(l)
+                            
+
+                    tai_yan_ba_fa = []
+                    with open(f"accounts/data/tai_yan_ba_fa/{file[0]}.csv", 'r', encoding='utf-8') as file:
+                        reader = csv.reader(file)
+                        for row in reader:
+                            tai_yan_ba_fa.append(row)
+
                     
                     d = int(our_date.day)
                     m = int(our_date.month)
@@ -595,43 +654,81 @@ def process_method(request):
                     h = int(CURRENT_TIME_SOLAR.split(":")[0])
                     mi = int(CURRENT_TIME_SOLAR.split(":")[1])
 
+
                     current_time_solar = datetime(y, m, d, h, mi).time()
-                    
+                    tai_yan_ba_fa = tai_yan_ba_fa[1:]
                     row_tab = ""
+                    current_row = ""
                     for row in tai_yan_ba_fa:
-                        start_time = datetime(y, m, d, hour=int(row['1'].split(" - ")[0].split(".")[0]), minute=int(row['1'].split(" - ")[0].split(".")[1])).time()
-                        end_time = datetime(y, m, d, hour=int(row['1'].split(" - ")[1].split(".")[0]), minute=int(row['1'].split(" - ")[1].split(".")[1])).time()
-                        # style_column = ""
+                        start_time = datetime(y, m, d, hour=int(row[1].split(" - ")[0].split(".")[0]), minute=int(row[1].split(" - ")[0].split(".")[1])).time()
+                        end_time = datetime(y, m, d, hour=int(row[1].split(" - ")[1].split(".")[0]), minute=int(row[1].split(" - ")[1].split(".")[1])).time()
+                        
                         if (current_time_solar >= start_time) & (current_time_solar < end_time):
                             style_column = " id='x-row' style='background-color: yellow;'"
+                            current_row = f"{row[2]}, {row[3]}, {row[4]}, {row[5]}"
                         else:
                             style_column = ""
 
                         row_tab += f'''
                             <tr{style_column}>
-                                <td> <span style='color:{color_dict[row['0']]};font-weight: bold'>{row['0']}</span> </td>
-                                <td> {row['1']} </td>
-                                <td> {highlight_words(row['2'])} </td>
-                                <td> {highlight_words(row['3'])} </td>
-                                <td> {highlight_words(row['4'])} </td>
-                                <td> {highlight_words(row['5'])} </td>
+                                <td> <span style='color:{color_dict[row[0]]};font-weight: bold'>{row[0]}</span> </td>
+                                <td> {row[1]} </td>
+                                <td> {highlight_words(row[2])} </td>
+                                <td> {highlight_words(row[3])} </td>
+                                <td> {highlight_words(row[4])} </td>
+                                <td> {highlight_words(row[5])} </td>
                             </tr>
                         '''
 
-                        table = f'''
-                            <div class=".scrollable-table;" style="height: 300px; overflow: auto;">
+                    def get_tayan_pair(current_row):
+                        if request.user.username == 'admin':
+                            channels = []
+                            for ch in current_row.split(','):
+                                if len(ch)>5:
+                                    channels.append(ch.strip().split()[0].lower().replace('цяо','цзяо'))
+                                else:
+                                    break
+
+                            channel = channels[0]
+                            if len(channels) == 2:
+                                res_tayan = f'''На данный момент благоприятна только комбинация 
+                                            <br><span style='font-weight: bold;'>Продление лет: </span>
+                                            <span style='font-weight: bold;'>{channel.capitalize()} - {dolgoletie[channel].capitalize()}</span>'''
+                            else:
+                                if skydoc[channel] in channels:
+                                    res_tayan = f'''Продление лет: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{dolgoletie[channel].capitalize()}</span>
+                                                <br>Небесный лекарь: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{skydoc[channel].capitalize()}</span>
+                                                <br>Порождающая ци: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{birthqi[channel].capitalize()}</span>
+                                                '''
+                                else:
+                                    
+                                    res_tayan = f'''или
+                                                <br>Продление лет: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{dolgoletie[channel].capitalize()}</span>
+                                                <br>или
+                                                <br>Продление лет: <span style='font-weight: bold;'>{channels[2].capitalize()}</span> - <span style='font-weight: bold;'>{dolgoletie[channels[2]].capitalize()}</span>
+                                                '''
+                            return "<p>Открытые комбинации каналов на текущий час:</p>" + res_tayan
+                            
+
+
+
+                    table = f'''
+                        <div class='container'>
+                            <p>{get_tayan_pair(current_row)}</p>
+                        </div>
+                        <div class=".scrollable-table;" style="height: 300px; overflow: auto;">
+                            <div style="margin: auto 10px;" >
                                 <table>
                                     {row_tab}
                                 </table>
                             </div>
-                            '''
-                   
+                        </div>
+                        '''
+                
                     return table
                
                 elif method=="ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА":
                     da_syao = read_files("da_syao")
-                    # current_hour_china_list = da_syao[current_hour_china[1]].to_list()
-                    # current_hour_china_str = ' || '.join(current_hour_china_list)
                     
                     channelOfT = ""
                     pointsOfT = ""
@@ -668,7 +765,7 @@ def process_method(request):
                             '''
                     return table     
                 
-            result = calculate_method(selected_method)  # Замените на вашу функцию
+            result = calculate_method(selected_method)  
             
             return JsonResponse({
                 'success': True,
@@ -682,21 +779,82 @@ def process_method(request):
 
 
 
-
-
-
-
 def register(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = RegisterForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Аккаунт {username} создан! Теперь вы можете войти.')
-            return redirect('login')
+            user = form.save()  # save() уже установит is_active=False и сгенерирует токен
+            
+            # Отправляем email для верификации
+            subject = 'Подтверждение email'
+            html_message = render_to_string('registration/verification_email.html', {
+                'user': user,
+                'verification_link': f"http://{request.get_host()}/verify-email/{user.verification_token}/",
+            })
+            
+            email = EmailMessage(
+                subject,
+                html_message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email]
+            )
+            email.content_subtype = "html"
+            email.send()
+            
+            return redirect('registration_sent')
     else:
-        form = CustomUserCreationForm()
+        form = RegisterForm()
+    
     return render(request, 'accounts/register.html', {'form': form})
+
+def verify_email(request, token):
+    try:
+        # Ищем пользователя по токену верификации
+        user = CustomUser.objects.get(verification_token=token)
+        
+        if user.is_verification_token_expired():
+            # Генерируем новый токен и отправляем письмо повторно
+            user.generate_verification_token()
+            
+            # Отправляем новое письмо
+            subject = 'Новая ссылка для подтверждения email'
+            html_message = render_to_string('registration/verification_email.html', {
+                'user': user,
+                'verification_link': f"http://{request.get_host()}/verify-email/{user.verification_token}/",
+            })
+            
+            email = EmailMessage(
+                subject,
+                html_message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email]
+            )
+            email.content_subtype = "html"
+            email.send()
+            
+            return redirect('verification_expired')
+            
+        # Подтверждаем email используя метод модели
+        if user.verify_email(token):
+            return redirect('email_verified')
+        else:
+            return redirect('invalid_verification')
+            
+    except CustomUser.DoesNotExist:
+        return redirect('invalid_verification')
+
+# Простые view для страниц статуса
+def registration_sent(request):
+    return render(request, 'registration/registration_sent.html')
+
+def email_verified(request):
+    return render(request, 'registration/email_verified.html')
+
+def verification_expired(request):
+    return render(request, 'registration/verification_expired.html')
+
+def invalid_verification(request):
+    return render(request, 'registration/invalid_verification.html')
 
 @login_required
 def profile(request):
@@ -725,10 +883,10 @@ def profile(request):
 
 
 
+
 def index(request):
     cities = read_files('cities')
-    cit = cities["Город"].values.tolist()
-    print("Cities before JSON:", cit[:10])
+    cit = [row["Город"] for row in cities]
     methods = [" ", "ЛУННЫЕ ДВОРЦЫ", "ФЭЙ ТЭН БА ФА", "ЛИН ГУЙ БА ФА", 
                "ТАЙ ЯН БА ФА", "ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА"]
     context = {
@@ -739,5 +897,3 @@ def index(request):
         'methods': methods, # Добавьте другие переменные, которые нужно передать в шаблон
     }
     return render(request, 'accounts/index.html', context)
-
-

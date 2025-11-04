@@ -1,0 +1,16 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Письмо отправлено{% endblock %}
+
+{% block header %} Письмо отправлено
+    <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+{% endblock %}
+
+{% block content %}
+<div class='container'>
+    <h2>Регистрация почти завершена!</h2>
+    <p>На ваш email отправлено письмо с ссылкой для подтверждения.</p>
+    <p>Проверьте папку "Спам", если письмо не пришло в течение 5 минут.</p>
+</div>
+{% endblock %}

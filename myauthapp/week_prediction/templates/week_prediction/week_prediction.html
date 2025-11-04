@@ -1,0 +1,69 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Расписание на неделю{% endblock %}
+{% block header %}
+    Рассчёт на неделю
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+    <script src="{% static 'js/week_prediction.js' %}"></script>
+
+{% endblock %}
+    
+{% block content %}
+
+<div class="container">
+    
+    <form id="predictionForm" class="mb-4">
+        {% csrf_token %}
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="needed_channel" class="form-label">Канал:</label>
+                    <select class="form-select" id="needed_channel" name="needed_channel" required>
+                        <option value="Ду-май">Ду-май</option>
+                        <option value="Чонг-май">Чонг-май</option>
+                        <option value="Инь-цяо">Инь-цяо</option>
+                        <option value="Ян-вэй">Ян-вэй</option>
+                        <option value="Жень-май">Жень-май</option>
+                        <option value="Дай-май" selected>Дай-май</option>
+                        <option value="Ян-цяо">Ян-цяо</option>
+                        <option value="Инь-вэй">Инь-вэй</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="needed_in_yan_day" class="form-label">Инь/Ян дня:</label>
+                    <select class="form-select" id="needed_in_yan_day" name="needed_in_yan_day" required>
+                        <option value="ян" selected>Ян</option>
+                        <option value="инь">Инь</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="needed_method" class="form-label">Метод:</label>
+                    <select class="form-select" id="needed_method" name="needed_method" required>
+                        <option value="Продление жизни">Продление жизни</option>
+                        <option value="Небесный лекарь" selected>Небесный лекарь</option>
+                        <option value="Порождающая ци">Порождающая ци</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="needed_date" class="form-label">Начальная дата:</label>
+                    <input type="date" class="form-control" id="needed_date" name="needed_date" 
+                           value="{{ today|date:'Y-m-d' }}" required>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="button" id="submitBtn">
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            Получить предсказания
+        </button>
+    </form>
+    
+    <div id="resultsContainer"></div>
+    <div id="errorContainer" class="alert alert-danger d-none mt-3"></div>
+</div>
+{% endblock %}
+        

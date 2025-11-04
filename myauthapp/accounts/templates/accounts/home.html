@@ -4,110 +4,22 @@
 {% block title %}Главная{% endblock %}
 
 {% block header %}
-    Калькулятор Ба Цзы
+    Калькулятор хронопунктуры
     <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+    <script src="{% static 'js/modules/utils.js' %}"></script>
+    <script src="{% static 'js/modules/dateHandling.js' %}"></script>
+    <script src="{% static 'js/modules/dataProcessors.js' %}"></script>
+    <script src="{% static 'js/modules/eventHandlers.js' %}"></script>
+    <script src="{% static 'js/modules/cityAutocomplete.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
 {% endblock %}
     
 {% block content %}
 {% if user.is_authenticated %}
-{% if request.META.HTTP_USER_AGENT and 'Android' in request.META.HTTP_USER_AGENT %}
-    <!-- Для смартфона используем мобильную версию -->
-    
-    <p style="padding-left: 20px;">Сегодня: <strong>{{ current_date_show }}</strong></p>
-    
-    <!-- Форма для даты -->
-    <div class="container">
-        <label>Введите дату рождения
-            <input type="date" id="birthdayInput" value="{{ user.get_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" required>
-        </label>
-        <button id="submitBirthday">Отправить дату</button>
-        <div id="birthdayResult"></div>
-    </div>
-    
-    <!-- Форма для города (блокируется пока не отправлена дата) -->
-    <div class="container">
-        <label for="citySelect">Введите город:</label>
-        <div>
-            <input type="text" id="citySearch" placeholder="Начните вводить..." value="{{ user.city }}"
-                autocomplete="on" style="width: 100%; background-color: #eeeeee;">
-            </div>
-                <select id="citySelect" size="5" style="display: none;">
-                    <!-- Варианты будут добавляться динамически -->
-                </select>
-            <div>
-        </div>
-        <button id="submitCity" >Отправить город</button>
-        <div id="cityResult"></div>
-        <label>
-            <input type="checkbox" id="changeTime"> Нужен расчёт по административному времени
-        </label>
-        <div id="checkTime"></div>
-    </div>
-    
-
-    <div class="container">
-        <label>Введите интересующую дату
-            <input type="date" id="ourdateInput" value="{{ current_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" disabled required>
-        </label>
-        <button id="submitOurdate">Отправить дату</button>
-        <div id="ourdateResult"></div>
-    </div>
-
-    <div class="container">
-        <label for="methodSelect">Выберите метод расчета:</label>
-        <div>
-            <select id="methodSelect" style="width: 100%;
-                                            border: none;
-                                            background-color: #eeeeee;
-                                            border-radius: 10px;
-                                            text-align: center; 
-                                            height: 40px; 
-                                            font-size: 16px;
-                                        ">
-                {% for method in methods %}
-                    <option value="{{ forloop.counter0 }}" style="width: 100%;
-                                            max-width: var(--max-width);
-                                            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-                                            font-size: 16px;
-                                            font-weight: bold;
-                                            color: #4e4d4d;
-                                            color-scheme: gray;
-                                            background-color: white;
-                                            box-shadow: #4e4d4d;
-                                            border-radius: 10px;
-                                            margin-top: 2px;
-                                        ">{{ method }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button>
-        <div id="methodResult" class="mt-3"></div>
-    </div>
-
-    <script src="{% static 'js/mobile.js' %}"></script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-{% else %}
 <div class="container">  
     <section class="my-5">
-        <h2>Бесплатный контент</h2>
-        <p>Этот раздел доступен всем пользователям.</p>
         <p>Сегодня: <strong>{{ current_date_show }}</strong></p>
-
+        
         <!-- Форма для даты -->
         <div class="container">
             <label>Введите дату рождения
@@ -136,11 +48,22 @@
         </div>
     </section>
 
+
+
+
+
     <!-- Премиум контент -->
-    <h2>Эксклюзивные материалы</h2>
+<!--    <h2>Эксклюзивные материалы</h2> -->
     {% if not user.subscriptions.first.is_active %}
         <div class="full-access">
-            <p>Этот контент доступен только подписчикам. <a href="{% url 'payments:tariff_list' %}">Оформите подписку</a> для полного доступа.</p>
+            <p>Для получения полного доступа оформите подписку</p>
+            <!--<div style="display: grid; grid-auto-flow: column;">-->
+            <!--    <div>-->
+            <!--        <a href="{% url 'payments:tariff_list' %}" class="button_link">-->
+            <!--            Оформить подписку-->
+            <!--        </a>-->
+            <!--    </div>-->
+            <!--</div>-->
         </div>
     {% endif %}
     <section class="my-5">
@@ -148,10 +71,7 @@
         <div class="premium-content">
             
             {% if has_active_subscription %}
-                <!-- Полный доступ для подписчиков -->
                 <div class="full-access">
-                    <p>Спасибо за подписку! Вот ваш эксклюзивный контент:</p>
-                    <!-- Ваш премиум-контент здесь -->
                     <div class="container">
                         <label>Введите интересующую дату
                             <input type="date" id="ourdateInput" value="{{ current_date|default:'' }}" style="width: 100%; background-color: #eeeeee;" disabled required>
@@ -187,16 +107,26 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <!-- <button id="submitMethod" class="btn btn-primary mt-2">Рассчитать</button> -->
+
                         <div id="methodResult" class="mt-3" tabindex="-1"></div>
                         <div id="compiled" class="container" >   </div>
                     </div>
                 </div>
+                {% if user.username == 'admin' %}
+                <div class="container">
+                    <a href="{% url 'week_prediction:week_prediction' %}">
+                        <button>Перейти к рассчёту на неделю</button>
+                    </a>
+                </div>
+                {% else %}
+                <div></div>
+                {% endif %}
+
+
             {% else %}
-                <!-- Ограниченный просмотр для неподписчиков -->
+
                 <div class="limited-view">
                     <div class="preview">
-                        <!-- Пример превью контента -->
                         <p>Здесь показана небольшая часть материала...</p>
                         <div class="blur-overlay"></div>
                     </div>
@@ -205,13 +135,8 @@
         </div>
     </section>
 </div>  
-    <!-- Для остальных устройств обычную версию -->
-    <script src="{% static 'js/script.js' %}"></script>
-{% endif %}
-        
     
     <script>
-        // Передаем Django-переменные в JavaScript
         window.processBirthdayUrl = "{% url 'process_birthday' %}";
         window.processCityUrl = "{% url 'process_city' %}";
         window.processOurDateUrl = "{% url 'process_our_date' %}";
@@ -219,13 +144,12 @@
         window.csrfToken = "{{ csrf_token }}";
         window.citiesJson = '{{ cities_json|safe }}';
         window.citySearchUrl = "{% url 'city_search' %}";
-
     </script>
-    <script src="{% static 'js/script.js' %}"></script>
+    <!-- <script src="{% static 'js/script.js' %}"></script> -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
 
-     
+    
     {% else %}
     <div style="text-align: center; margin: 30px 0;">
         <p>Для доступа к системы требуется авторизация</p>
@@ -239,5 +163,47 @@
         </div>
     </div>
     {% endif %}
+    
+<style>
+    input[type="text"] {
+        width: 100%;
+        border: 1px;
+        background-color: #eeeeee;
+        border-color: #eeeeee;
+        border-radius: 10px;
+        text-align: center;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    input[type="email"] {
+        width: 100%;
+        border: 1px;
+        background-color: #eeeeee;
+        border-color: #eeeeee;
+        border-radius: 10px;
+        text-align: center;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .button_link {
+        background-color: #eeeeee;
+        border-color: #eeeeee;
+        color: var(--primary-color);
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .button_link:hover {
+        background-color: var(--primary-color);
+        color: white;
+
+    }
+</style>
 
 {% endblock %}

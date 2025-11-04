@@ -1,0 +1,15 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Email подтвержден{% endblock %}
+
+{% block header %}Email подтвержден
+    <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+{% endblock %}
+
+{% block content %}
+<div class='container'>
+    <h2>Email успешно подтвержден!</h2>
+    <p>Теперь вы можете <a href="{% url 'login' %}">войти в свой аккаунт</a>.</p> 
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>📧 Подтверждение Email</h2>
+    
+    {% if not user.email_verified %}
+    <div class="alert alert-warning">
+        Ваш email не подтвержден. Подтвердите его для полного доступа к функциям сайта.
+    </div>
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Отправить письмо подтверждения</button>
+    </form>
+</div>
+{% endblock %}

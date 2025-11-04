@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Неверная ссылка</title>
+</head>
+<body>
+
+</body>
+</html>
+
+
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Неверная ссылка{% endblock %}
+
+{% block header %}Неверная ссылка
+    <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+{% endblock %}
+
+{% block content %}
+<div class='container'>
+    <h2>Неверная ссылка подтверждения</h2>
+    <p>Возможно, email уже был подтвержден или ссылка неверна.</p>
+    <p><a href="{% url 'login' %}">Войти</a> или <a href="{% url 'register' %}">зарегистрироваться</a></p>
+</div>
+{% endblock %}

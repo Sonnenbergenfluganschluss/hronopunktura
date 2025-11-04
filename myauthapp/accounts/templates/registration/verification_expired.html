@@ -1,0 +1,16 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Ссылка устарела{% endblock %}
+
+{% block header %}Ссылка устарела
+    <link rel="stylesheet" href="{% static 'css/styles.css'%}" type="text/css">
+{% endblock %}
+
+{% block content %}
+<div class='container'>
+    <h2>Ссылка для подтверждения устарела</h2>
+    <p>Ссылка действительна только 24 часа. Пожалуйста, зарегистрируйтесь снова.</p>
+    <p><a href="{% url 'register' %}">Зарегистрироваться</a></p>
+</div>
+{% endblock %}
