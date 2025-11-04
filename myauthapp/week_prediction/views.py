@@ -181,16 +181,26 @@ def predictions_process(request):
                         file.append(l)
                 
                 tai_yan_ba_fa = read_csv(f'tai_yan_ba_fa/{dict_tai[file[0]]}')
-                print(dict_tai[file[0]])
                 rows = ""
                 for row in tai_yan_ba_fa:
                     s_row = " ".join(row)
                     if (needed_pair[0] in s_row) and (needed_pair[1] in s_row):
-                        rows += f"{row[1]}<br>"
+                        if len(rows) == 0:
+                            rows += f"{row[1]}<br>"
+                        else:
+                            endp = int(rows.rstrip("<br>").split(" - ")[-1].split(".")[0])
+                            nextp = int(row[1].split(" - ")[0].split(".")[0])
+                            if endp == nextp:
+                                rows = rows.replace(rows.rstrip("<br>").split(" - ")[-1], row[1].split(" - ")[1])
+                            else:
+                                rows += f"{row[1]}<br>"
+
                 taiyan += f"<td>{rows}</td>"
             else:
                 taiyan += f"<td>-</td>"
             
+##############################################################################################
+
 
             table = f'''<table>
                             <tr style="font:14; padding:2px;">
