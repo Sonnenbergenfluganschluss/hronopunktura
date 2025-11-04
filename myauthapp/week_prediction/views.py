@@ -45,7 +45,7 @@ birthqi = {
 }
 
 def read_csv_files(table):       
-    table_csv = pd.read_csv(f"week_prediction/data/{table}.csv")
+    table_csv = pd.read_csv(f"accounts/data/{table}.csv")
     return table_csv
 
 
@@ -128,7 +128,7 @@ def predictions_process(request):
         taiyan = ""
 
         for our_date in week_predictions["our_date"]:
-            cols += f"<th>{our_date.strftime('%d.%m.%Y')}</th>"
+            cols += f"<th  style='font:14; padding:2px;'>{our_date.strftime('%d.%m.%Y')}</th>"
             if pd.to_datetime(our_date) < pd.to_datetime(seasons.loc[2, str(our_date.year)]):
                 year_o = calendar[calendar['date']==pd.to_datetime(pd.to_datetime(our_date)-timedelta(days=51))]['years'].values[0]
             else:
@@ -141,21 +141,15 @@ def predictions_process(request):
                 month_o = calendar[calendar['date']==pd.to_datetime(our_date)]['months'].values[0]
 
             day_o = calendar[calendar['date']==pd.to_datetime(our_date)]['days'].values[0]
-            # day = cicle[cicle["Название_calendar"] == day_o]["Название_Русский"].values[0]
             day_iero = cicle[cicle["Название_calendar"] == day_o]["Иероглиф"].values[0]
             week_predictions["day_iero"].append(day_iero)
-            # month_iero = cicle[cicle["Название_calendar"] == month_o]["Иероглиф"].values[0]
-            # year_iero = cicle[cicle["Название_calendar"] == year_o]["Иероглиф"].values[0]
-            
             in_yan_day = cicle[cicle['Название_calendar'] == day_o]['инь_ян'].values[0]
             week_predictions["in_yan_day"].append(in_yan_day)
 
 
     ######### ФЭЙ ТЭН БА ФА ##########
-            # feitenbafa = pd.read_csv("week_prediction/data/feitenbafa.csv")
             feitenbafa = read_csv_files('feitenbafa')
             for_feitenbafa = read_csv_files('for_feitenbafa')
-            # for_feitenbafa = pd.read_csv("week_prediction/data/for_feitenbafa.csv")
             day_predictions = feitenbafa.merge(for_feitenbafa.rename(columns={"Иероглиф":day_iero[0]}))
             feitenbafa_day = day_predictions[[day_iero[0], 'Иероглиф',	'Время',	'Канал',	'Точки']]
             
@@ -199,8 +193,8 @@ def predictions_process(request):
             
 
             table = f'''<table>
-                            <tr>
-                                <th> Метод </th>
+                            <tr style="font:14; padding:2px;">
+                                <th style="font:14; padding:2px;"> Метод </th>
                                 {cols}
                             </tr>
                             <tr>
