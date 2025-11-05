@@ -61,6 +61,11 @@ def read_csv(table):
 
 ################################################################################################
 
+feitenbafa = read_csv_files('feitenbafa')
+for_feitenbafa = read_csv_files('for_feitenbafa')
+for_lin_gui_ba_fa = read_csv_files("for_lin_gui_ba_fa")
+sky_hands = read_csv_files("sky_hands")
+earth_legs = read_csv_files("earth_legs")
 
 def week_prediction(request):
         context = {
@@ -148,8 +153,6 @@ def predictions_process(request):
 
 
     ######### ФЭЙ ТЭН БА ФА ##########
-            feitenbafa = read_csv_files('feitenbafa')
-            for_feitenbafa = read_csv_files('for_feitenbafa')
             day_predictions = feitenbafa.merge(for_feitenbafa.rename(columns={"Иероглиф":day_iero[0]}))
             feitenbafa_day = day_predictions[[day_iero[0], 'Иероглиф',	'Время',	'Канал',	'Точки']]
             
@@ -161,9 +164,31 @@ def predictions_process(request):
             feiten += f"<td>{fen_time}</td>"
 
     ######### ЛИН ГУЙ БА ФА ##########
-            lingui += "<td>-</td>"
+            
 
+            
+            linguibafa = ""
+            for i in feitenbafa_day.index:
+                summ = sky_hands[sky_hands['Иероглиф']==day_iero[0]]['i_day'].values[0] + \
+                            sky_hands[sky_hands['Иероглиф']==feitenbafa_day.iloc[i, 0]]['i_hour'].values[0] + \
+                            earth_legs[earth_legs['Иероглиф']==day_iero[1]]['j_day'].values[0] + \
+                            earth_legs[earth_legs['Иероглиф']==feitenbafa_day.iloc[i, 1]]['j_hour'].values[0]
 
+                if cicle[cicle['Иероглиф']==day_iero]['инь_ян'].values[0] == 'ян':
+                    res = summ%9
+                    if res == 0:
+                        res = 9
+                else:
+                    res = summ%6
+                    if res == 0:
+                        res = 6  
+                    
+                linguibafa_lst = list(feitenbafa_day.iloc[i,:3].values)
+                linguibafa_lst.extend(for_lin_gui_ba_fa[for_lin_gui_ba_fa['res']==res].values[0][1:])
+                if needed_channel in linguibafa_lst:
+                    linguibafa += f"{linguibafa_lst[2]}<br>"
+            lingui += f"<td>{linguibafa}</td>"
+ 
 
     ######### ТАЙ ЯН БА ФА ##########
             if in_yan_day == needed_in_yan_day:
