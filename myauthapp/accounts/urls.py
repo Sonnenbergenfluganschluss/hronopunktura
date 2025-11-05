@@ -1,6 +1,12 @@
 from django.urls import path, include
 from . import views
 from django.contrib.auth import views as auth_views
+from .views import (
+    home, index, 
+    process_birthday, process_city, process_our_date, process_method, city_search,
+    register, verify_email, profile, registration_sent, email_verified, 
+    verification_expired, invalid_verification
+)
 
 urlpatterns = [ 
      path('', views.home, name='home'),
