@@ -6,6 +6,42 @@ from ...utils import highlight_words
 import pandas as pd
 
 
+def get_luo_taiyan(current_row, needed_channel):
+    if len(current_row)>0:
+        df = pd.read_csv(str(settings.BASE_DIR) + '/accounts/data/luo_taiyan.csv', index_col='Unnamed: 0')
+        current_channel = current_row.split(',')[0].split()[0]
+        return f"<div class='container'>Связь с каналом {needed_channel} через Luo-точки: {df.loc[current_channel.lower(), needed_channel.lower()]}</div>"
+
+
+def get_tayan_pair(current_row):
+        channels = []
+        for ch in current_row.split(','):
+            if len(ch)>5:
+                channels.append(ch.strip().split()[0].lower().replace('цяо','цзяо'))
+            else:
+                break
+
+        channel = channels[0]
+        if len(channels) == 2:
+            res_tayan = f'''На данный момент благоприятна только комбинация 
+                        <br><span style='font-weight: bold;'>Продление лет: </span>
+                        <span style='font-weight: bold;'>{channel.capitalize()} - {dolgoletie[channel].capitalize()}</span>'''
+        else:
+            if skydoc[channel] in channels:
+                res_tayan = f'''Продление лет: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{dolgoletie[channel].capitalize()}</span>
+                            <br>Небесный лекарь: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{skydoc[channel].capitalize()}</span>
+                            <br>Порождающая ци: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{birthqi[channel].capitalize()}</span>
+                            '''
+            else:
+                
+                res_tayan = f'''или
+                            <br>Продление лет: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{dolgoletie[channel].capitalize()}</span>
+                            <br>или
+                            <br>Продление лет: <span style='font-weight: bold;'>{channels[2].capitalize()}</span> - <span style='font-weight: bold;'>{dolgoletie[channels[2]].capitalize()}</span>
+                            '''
+        return "<p>Открытые комбинации каналов на текущий час:</p>" + res_tayan
+
+
 def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
     list_tai = ['丁壬', '丙辛', '乙庚', '戊癸', '甲己']
     file = []
@@ -52,48 +88,7 @@ def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
                 <td> {highlight_words(row[5])} </td>
             </tr>
         '''
-
-
-
-    def get_tayan_pair(current_row):
-            channels = []
-            for ch in current_row.split(','):
-                if len(ch)>5:
-                    channels.append(ch.strip().split()[0].lower().replace('цяо','цзяо'))
-                else:
-                    break
-
-            channel = channels[0]
-            if len(channels) == 2:
-                res_tayan = f'''На данный момент благоприятна только комбинация 
-                            <br><span style='font-weight: bold;'>Продление лет: </span>
-                            <span style='font-weight: bold;'>{channel.capitalize()} - {dolgoletie[channel].capitalize()}</span>'''
-            else:
-                if skydoc[channel] in channels:
-                    res_tayan = f'''Продление лет: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{dolgoletie[channel].capitalize()}</span>
-                                <br>Небесный лекарь: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{skydoc[channel].capitalize()}</span>
-                                <br>Порождающая ци: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{birthqi[channel].capitalize()}</span>
-                                '''
-                else:
-                    
-                    res_tayan = f'''или
-                                <br>Продление лет: <span style='font-weight: bold;'>{channel.capitalize()}</span> - <span style='font-weight: bold;'>{dolgoletie[channel].capitalize()}</span>
-                                <br>или
-                                <br>Продление лет: <span style='font-weight: bold;'>{channels[2].capitalize()}</span> - <span style='font-weight: bold;'>{dolgoletie[channels[2]].capitalize()}</span>
-                                '''
-            return "<p>Открытые комбинации каналов на текущий час:</p>" + res_tayan
-    
-
-    def get_luo_taiyan(current_row, needed_channel):
-        if len(current_row)>0:
-            df = pd.read_csv(str(settings.BASE_DIR) + '/accounts/data/luo_taiyan.csv', index_col='Unnamed: 0')
-            current_channel = current_row.split(',')[0].split()[0]
-            print(current_row)
-            return f"<div class='container'>Связь с каналом {needed_channel} через Luo-точки: {df.loc[current_channel.lower(), needed_channel.lower()]}</div>"
-            
-
-
-
+        
     table = f'''
         <div class='container'>
             {get_tayan_pair(current_row)}

@@ -70,13 +70,16 @@ def process_method(request):
                 if method=="ЛУННЫЕ ДВОРЦЫ":
                     return get_moon_palace(our_date, vis_yaer)
 
-                elif method=="ФЭЙ ТЭН БА ФА":       
+                elif method=="ФЭЙ ТЭН БА ФА":   
+                    needed_channel = request.POST.get('needed_channel', 'Дай-май')    
                     return get_feiten(feitenbafa, current_hour_china, headOfT, timeOfT)             
 
                 elif method=="ЛИН ГУЙ БА ФА":
+                    needed_channel = request.POST.get('needed_channel', 'Дай-май')
                     return get_lingui(feitenbafa, day_iero, current_hour_china, headOfT, timeOfT)
     
                 elif method=="ТАЙ ЯН БА ФА":
+                    needed_channel = request.POST.get('needed_channel', 'Дай-май')
                     return get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT)
                
                 elif method=="ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА":

@@ -48,22 +48,10 @@
         </div>
     </section>
 
-
-
-
-
-    <!-- Премиум контент -->
-<!--    <h2>Эксклюзивные материалы</h2> -->
     {% if not user.subscriptions.first.is_active %}
         <div class="full-access">
             <p>Для получения полного доступа оформите подписку</p>
-            <!--<div style="display: grid; grid-auto-flow: column;">-->
-            <!--    <div>-->
-            <!--        <a href="{% url 'payments:tariff_list' %}" class="button_link">-->
-            <!--            Оформить подписку-->
-            <!--        </a>-->
-            <!--    </div>-->
-            <!--</div>-->
+
         </div>
     {% endif %}
     <section class="my-5">
@@ -109,7 +97,38 @@
                         </div>
 
                         <div id="methodResult" class="mt-3" tabindex="-1"></div>
-                        <div id="compiled" class="container" >   </div>
+                        
+                        <!-- {% if method is 'ТАЙ ЯН БА ФА' %} -->
+                            <div class="container">
+                                <form id="predictionForm" class="mb-4">
+                                    {% csrf_token %}
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label for="needed_channel" class="form-label">Канал:</label>
+                                                <select class="form-select" id="needed_channel" name="needed_channel" required>
+                                                    <option value="Ду-май">Ду-май</option>
+                                                    <option value="Чонг-май">Чонг-май</option>
+                                                    <option value="Инь-цяо">Инь-цяо</option>
+                                                    <option value="Ян-вэй">Ян-вэй</option>
+                                                    <option value="Жень-май">Жень-май</option>
+                                                    <option value="Дай-май" selected>Дай-май</option>
+                                                    <option value="Ян-цяо">Ян-цяо</option>
+                                                    <option value="Инь-вэй">Инь-вэй</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="button" id="submitBtn">
+                                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        Enter
+                                    </button>
+                                </form>
+                                
+                                <div id="resultsContainer"></div>
+                                <!-- <div id="errorContainer" class="alert alert-danger d-none mt-3"></div> -->
+                            </div>
+                        <!-- {% endif %} -->
                     </div>
                 </div>
                 {% if user.username == 'admin' %}

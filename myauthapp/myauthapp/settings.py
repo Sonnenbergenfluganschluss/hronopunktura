@@ -1,50 +1,33 @@
 from pathlib import Path
 import os
-# import sys
 from dotenv import load_dotenv
 import idna 
 from django.utils.encoding import smart_str
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-m)w^@-z@$4&ll0(58_*$i*tyg(a5u@3!_2nokxlb%#b@$qpdq#'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# Загружаем .env файл
 env_path = BASE_DIR / '.env'
 load_dotenv(env_path)
 
-# Теперь используем os.environ.get() для получения переменных
-SECRET_KEY = os.environ.get('SECRET_KEY')
+# SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY='django-insecure-m3%!16-+$j*%-!n6l=s3id^oo_qfsm^sx#=eo#s_9fz6^xdiib'
+
 
 def convert_idn_email(email):
-    """
-    Конвертирует кириллический email в ASCII для SMTP
-    example@хронопунктура.рф → example@xn--80aefcbb2bq6dwa.xn--p1ai
-    """
     try:
         if '@' in email:
             local_part, domain = email.split('@')
-            # Конвертируем домен в Punycode
             domain_ascii = idna.encode(domain).decode('ascii')
             return f"{local_part}@{domain_ascii}"
         return email
     except:
         return email
 
-# Конвертируем email для SMTP авторизации
 ASCII_EMAIL = convert_idn_email('email@хронопунктура.рф')
-# Настройки email
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT'))
+# EMAIL_PORT = int(os.environ.get('EMAIL_PORT'))
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'False').lower() == 'true'
 EMAIL_HOST_USER = ASCII_EMAIL

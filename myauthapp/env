@@ -1,0 +1,16 @@
+EMAIL_HOST='smtp.spaceweb.ru'
+EMAIL_PORT=2525
+EMAIL_USE_SSL=False
+EMAIL_USE_TLS=False
+
+EMAIL_HOST_USER='email@xn--80atiadbhegtidq.xn--p1ai'
+EMAIL_HOST_PASSWORD='46ihFKg_*&*kfdlvn_rt'
+DEFAULT_FROM_EMAIL='email@xn--80atiadbhegtidq.xn--p1ai'
+
+
+SECRET_KEY='django-insecure-m3%!16-+$j*%-!n6l=s3id^oo_qfsm^sx#=eo#s_9fz6^xdiib'
+
+
+DB_PASSWORD = '43-ToP&Td382l$&mD4-f'
+DB_NAME = 'hronopunrf_newbd'
+DB_USER = 'hronopunrf_newbd'

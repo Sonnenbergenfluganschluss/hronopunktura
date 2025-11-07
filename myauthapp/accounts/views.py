@@ -1,4 +1,4 @@
-from .for_views.home import home
+from .for_views.home import *
 from .for_views.calculate.process_our_date import *
 from .for_views.register import *
 from .for_views.calculate.process_city import *
