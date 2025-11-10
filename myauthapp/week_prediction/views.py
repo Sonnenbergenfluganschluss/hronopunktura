@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 import pandas as pd
 from datetime import datetime, timedelta, date
+from django.conf import settings
 import csv
 
 
@@ -45,13 +46,13 @@ birthqi = {
 }
 
 def read_csv_files(table):       
-    table_csv = pd.read_csv(f"accounts/data/{table}.csv")
+    table_csv = pd.read_csv(f"{settings.BASE_DIR}/accounts/data/{table}.csv")
     return table_csv
 
 
 def read_csv(table):
     lsts = []
-    with open(f'accounts/data/{table}.csv', encoding='utf-8') as file:
+    with open(f'{settings.BASE_DIR}/accounts/data/{table}.csv', encoding='utf-8') as file:
         reader = csv.reader(file)
         for row in reader:
             lsts.append(row)
@@ -209,16 +210,17 @@ def predictions_process(request):
                 rows = ""
                 for row in tai_yan_ba_fa:
                     s_row = " ".join(row)
-                    if (needed_pair[0] in s_row) and (needed_pair[1] in s_row):
-                        if len(rows) == 0:
-                            rows += f"{row[1]}<br>"
-                        else:
-                            endp = int(rows.rstrip("<br>").split(" - ")[-1].split(".")[0])
-                            nextp = int(row[1].split(" - ")[0].split(".")[0])
-                            if endp == nextp:
-                                rows = rows.replace(rows.rstrip("<br>").split(" - ")[-1], row[1].split(" - ")[1])
-                            else:
+                    if needed_pair[0] in s_row:
+                        if (needed_pair[1] in s_row):
+                            if len(rows) == 0:
                                 rows += f"{row[1]}<br>"
+                            else:
+                                endp = int(rows.rstrip("<br>").split(" - ")[-1].split(".")[0])
+                                nextp = int(row[1].split(" - ")[0].split(".")[0])
+                                if endp == nextp:
+                                    rows = rows.replace(rows.rstrip("<br>").split(" - ")[-1], row[1].split(" - ")[1])
+                                else:
+                                    rows += f"{row[1]}<br>"
 
                 taiyan += f"<td>{rows}</td>"
             else:

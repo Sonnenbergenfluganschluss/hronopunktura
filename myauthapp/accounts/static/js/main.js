@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
         birthdayData: null,
         cityData: null,
         ourDateData: null,
+        needed_channel: null,
     };
-
     // Инициализация элементов UI
     const uiElements = initUIElements();
     
@@ -26,6 +26,8 @@ function initUIElements() {
         cityResult: document.getElementById('cityResult'),
         checkTime: document.getElementById('checkTime'),
         ourdateResult: document.getElementById('ourdateResult'),
-        methodResult: document.getElementById('methodResult')
+        methodResult: document.getElementById('methodResult'),
+        neededChannel: document.getElementById('predictionForm'),
+        luoTaiyanResult: document.getElementById('luoTaiyanResult'),
     };
 }

@@ -5,7 +5,7 @@ from .views import (
     home, index, 
     process_birthday, process_city, process_our_date, process_method, city_search,
     register, verify_email, profile, registration_sent, email_verified, 
-    verification_expired, invalid_verification
+    verification_expired, invalid_verification, get_luo_taiyan,
 )
 
 urlpatterns = [ 
@@ -38,5 +38,5 @@ urlpatterns = [
      path('email-verified/', views.email_verified, name='email_verified'),
      path('verification-expired/', views.verification_expired, name='verification_expired'),
      path('invalid-verification/', views.invalid_verification, name='invalid_verification'),
-     path('get-luo/', views.predictions_process, name='predictions_process'),
+     path('get_luo_taiyan/', views.get_luo_taiyan, name='get_luo_taiyan'),
 ]
