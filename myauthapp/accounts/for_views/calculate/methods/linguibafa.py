@@ -1,7 +1,15 @@
 from ...utils import highlight_words, read_files
 
+current_channel_global = ""
+
+def get_current_channel_lingui():
+    """Функция для получения текущего current_channel"""
+    global current_channel_global
+    return current_channel_global
 
 def get_lingui(feitenbafa, day_iero, current_hour_china, headOfT, timeOfT):
+    global current_channel_global
+
     for_lin_gui_ba_fa = read_files('forLinGuiBaFa')
     sky_hands = read_files('sky_hands')
     earth_legs = read_files('earth_legs')
@@ -30,6 +38,7 @@ def get_lingui(feitenbafa, day_iero, current_hour_china, headOfT, timeOfT):
 
         if i["Иероглиф_ЗВ"] == current_hour_china[0]:
             style_column = " style='background-color: yellow;'"
+            current_channel_global = linguibafa_row['0']
         else:
             style_column = ""
         resOfT += f"<td{style_column}> {res} </td>"

@@ -101,6 +101,7 @@ async function processOurDateData(ui) {
     }
 }
 
+
 // --- ФУНКЦИЯ ОБРАБОТКИ МЕТОДА ---
 async function processMethodData(ui) {
     const methodIndex = ui.methodSelect.value;
@@ -125,7 +126,6 @@ async function processMethodData(ui) {
             window.calculationState.methodData = data;
             ui.methodResult.innerHTML = `
                 <div>
-                    <h4>Метод: ${data.method}</h4>
                     <div>${data.result}</div>
                 </div>
             `;

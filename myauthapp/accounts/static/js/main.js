@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', function() {
     // Глобальное состояние расчета
     window.calculationState = {

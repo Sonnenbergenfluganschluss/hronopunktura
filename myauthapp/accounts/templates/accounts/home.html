@@ -21,6 +21,7 @@
     <section class="my-5">
         <p>Сегодня: <strong>{{ current_date_show }}</strong></p>
         
+        {% if user.username != 'Анастасия' %}
         <!-- Форма для даты -->
         <div class="container">
             <label>Введите дату рождения
@@ -28,6 +29,7 @@
             </label>
             <div id="birthdayResult"></div>
         </div>
+        {% endif %}
         
         <!-- Форма для города  -->
         <div class="container">
@@ -68,7 +70,7 @@
                         <!-- <button id="submitOurdate">Отправить дату</button> -->
                         <div id="ourdateResult"></div>
                     </div>
-                
+
                     <div class="container">
                         <label for="methodSelect">Выберите метод расчета:</label>
                         <div>
@@ -101,9 +103,7 @@
                         
                     </div>
                     
-                    
-                    {% if method == '' %}
-                    {% if user.username == 'admin' %}
+                    {% if user.username == 'Анастасия' %}
                     <div class="container">
                         <form id="predictionForm">
                             {% csrf_token %}
@@ -141,9 +141,8 @@
                         <!-- <div id="errorContainer" class="alert alert-danger d-none mt-3"></div> -->
                     </div>
                     {% endif %}
-                    {% endif %}
                 </div>
-                {% if user.username == 'admin' %}
+                {% if user.username == 'Анастасия' %}
                 <div class="container">
                     <a href="{% url 'week_prediction:week_prediction' %}">
                         <button>Перейти к рассчёту на неделю</button>

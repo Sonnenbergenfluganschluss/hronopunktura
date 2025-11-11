@@ -5,16 +5,15 @@ from ...constants import color_dict, dolgoletie, skydoc, birthqi
 from ...utils import highlight_words
 import pandas as pd
 
-
 current_row_global = ""
+current_channel_global = ""
 
-def get_luo_taiyan(current_row, needed_channel):
-    if len(current_row) > 0:
+def get_luo_taiyan(current_channel, needed_channel):
+    if len(current_channel) > 0:
         try:
             df = pd.read_csv(str(settings.BASE_DIR) + '/accounts/data/luo_taiyan.csv', index_col='Unnamed: 0')
-            current_channel = current_row.split(',')[0].split()[0]
             result = df.loc[current_channel.lower(), needed_channel.lower()]
-            return f"<div class='container'>Связь с каналом {needed_channel} через Luo-точки: {result}</div>"
+            return f"<div class='container'>Связь {current_channel} с каналом {needed_channel} через Luo-точки: {result}</div>"
         except Exception as e:
             return f"<div class='container'>Ошибка при получении Luo-точек: {str(e)}</div>"
     return "<div class='container'>Нет данных для расчета Luo-точек</div>"
@@ -25,6 +24,10 @@ def get_current_row():
     global current_row_global
     return current_row_global
 
+def get_current_channel():
+    """Функция для получения текущего current_channel"""
+    global current_channel_global
+    return current_channel_global
 
 def get_tayan_pair(current_row):
         channels = []
@@ -57,6 +60,7 @@ def get_tayan_pair(current_row):
 
 def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
     global current_row_global
+    global current_channel_global
     
     list_tai = ['丁壬', '丙辛', '乙庚', '戊癸', '甲己']
     file = []
@@ -83,6 +87,7 @@ def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
     tai_yan_ba_fa = tai_yan_ba_fa[1:]
     row_tab = ""
     current_row = ""
+    current_channel = ""
     for row in tai_yan_ba_fa:
         start_time = datetime(y, m, d, hour=int(row[1].split(" - ")[0].split(".")[0]), minute=int(row[1].split(" - ")[0].split(".")[1])).time()
         end_time = datetime(y, m, d, hour=int(row[1].split(" - ")[1].split(".")[0]), minute=int(row[1].split(" - ")[1].split(".")[1])).time()
@@ -90,9 +95,12 @@ def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
         if (current_time_solar >= start_time) & (current_time_solar < end_time):
             style_column = " id='x-row' style='background-color: yellow;'"
             current_row = f"{row[2]}, {row[3]}, {row[4]}, {row[5]}"
+            current_channel = current_row.split(',')[0].split()[0]
         else:
             style_column = ""
+        
         current_row_global = current_row
+        current_channel_global = current_channel
         row_tab += f'''
             <tr{style_column}>
                 <td> <span style='color:{color_dict[row[0]]};font-weight: bold'>{row[0]}</span> </td>
@@ -103,9 +111,6 @@ def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
                 <td> {highlight_words(row[5])} </td>
             </tr>
         '''
-        # <div class='container'>
-        #     {get_luo_taiyan(current_row, needed_channel='Жень-май')}
-        # </div>
         
     table = f'''
         <div class='container'>

@@ -6,9 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
         predictionForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const neededChannel = document.getElementById('needed_channel').value;
+            const needed_сhannel = document.getElementById('needed_channel').value;
             
-            if (!neededChannel) {
+            if (!needed_сhannel) {
                 luoTaiyanResult.innerHTML = '<div class="alert alert-warning">Пожалуйста, выберите канал</div>';
                 return;
             }
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
                 body: JSON.stringify({
-                    needed_channel: neededChannel
+                    needed_channel: needed_сhannel
                 })
             })
             .then(response => response.json())

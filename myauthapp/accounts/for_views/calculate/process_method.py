@@ -31,6 +31,8 @@ def process_method(request):
                       "ЛИН ГУЙ БА ФА", "ТАЙ ЯН БА ФА", 
                       "ДА СЯО ЧЖОУ ТЯНЬ ЖЭНЬ ФА"]
             selected_method = methods[method_index]
+            request.session['current_method'] = selected_method
+
             
            
             def calculate_method(selected_method, our_date = our_date, day_iero=day_iero):

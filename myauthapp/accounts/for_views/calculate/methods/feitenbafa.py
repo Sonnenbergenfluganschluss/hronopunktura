@@ -1,11 +1,21 @@
 from ...utils import highlight_words
 
+current_channel_global = ""
+
+
+def get_current_channel_feiten():
+    """Функция для получения текущего current_channel"""
+    global current_channel_global
+    return current_channel_global
+
 
 def get_feiten(feitenbafa, current_hour_china, headOfT, timeOfT):
+    global current_channel_global
     channelOfT = ""
     pointsOfT = ""
     for row in feitenbafa:
         if row["Иероглиф_ЗВ"] == current_hour_china[0]:
+            current_channel_global = row['Канал']
             style_column = " style='background-color: yellow;'"
         else: 
             style_column = ""
