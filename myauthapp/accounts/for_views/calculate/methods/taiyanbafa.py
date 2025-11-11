@@ -6,11 +6,24 @@ from ...utils import highlight_words
 import pandas as pd
 
 
+current_row_global = ""
+
 def get_luo_taiyan(current_row, needed_channel):
-    if len(current_row)>0:
-        df = pd.read_csv(str(settings.BASE_DIR) + '/accounts/data/luo_taiyan.csv', index_col='Unnamed: 0')
-        current_channel = current_row.split(',')[0].split()[0]
-        return f"<div class='container'>Связь с каналом {needed_channel} через Luo-точки: {df.loc[current_channel.lower(), needed_channel.lower()]}</div>"
+    if len(current_row) > 0:
+        try:
+            df = pd.read_csv(str(settings.BASE_DIR) + '/accounts/data/luo_taiyan.csv', index_col='Unnamed: 0')
+            current_channel = current_row.split(',')[0].split()[0]
+            result = df.loc[current_channel.lower(), needed_channel.lower()]
+            return f"<div class='container'>Связь с каналом {needed_channel} через Luo-точки: {result}</div>"
+        except Exception as e:
+            return f"<div class='container'>Ошибка при получении Luo-точек: {str(e)}</div>"
+    return "<div class='container'>Нет данных для расчета Luo-точек</div>"
+
+
+def get_current_row():
+    """Функция для получения текущего current_row"""
+    global current_row_global
+    return current_row_global
 
 
 def get_tayan_pair(current_row):
@@ -43,6 +56,8 @@ def get_tayan_pair(current_row):
 
 
 def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
+    global current_row_global
+    
     list_tai = ['丁壬', '丙辛', '乙庚', '戊癸', '甲己']
     file = []
     for l in list_tai:
@@ -77,7 +92,7 @@ def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
             current_row = f"{row[2]}, {row[3]}, {row[4]}, {row[5]}"
         else:
             style_column = ""
-
+        current_row_global = current_row
         row_tab += f'''
             <tr{style_column}>
                 <td> <span style='color:{color_dict[row[0]]};font-weight: bold'>{row[0]}</span> </td>
@@ -88,13 +103,13 @@ def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
                 <td> {highlight_words(row[5])} </td>
             </tr>
         '''
+        # <div class='container'>
+        #     {get_luo_taiyan(current_row, needed_channel='Жень-май')}
+        # </div>
         
     table = f'''
         <div class='container'>
             {get_tayan_pair(current_row)}
-        </div>
-        <div class='container'>
-            {get_luo_taiyan(current_row, needed_channel='Жень-май')}
         </div>
         <div class=".scrollable-table;" style="height: 300px; overflow: auto;">
             <div style="margin: auto 10px;" >

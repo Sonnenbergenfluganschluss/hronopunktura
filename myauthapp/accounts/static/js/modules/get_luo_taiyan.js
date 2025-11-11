@@ -1,81 +1,43 @@
-// Добавьте этот код в ваш шаблон или отдельный JS файл
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('predictionForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const spinner = submitBtn.querySelector('.spinner-border');
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-                
-        // Показываем спиннер
-        spinner.classList.remove('d-none');
-        submitBtn.disabled = true;
-        
-        // Собираем данные формы
-        const formData = new FormData(form);
-        
-        // Отправляем AJAX запрос
-        fetch('needed_channel/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
+    const predictionForm = document.getElementById('predictionForm');
+    const luoTaiyanResult = document.getElementById('luoTaiyanResult');
+    
+    if (predictionForm) {
+        predictionForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const neededChannel = document.getElementById('needed_channel').value;
+            
+            if (!neededChannel) {
+                luoTaiyanResult.innerHTML = '<div class="alert alert-warning">Пожалуйста, выберите канал</div>';
+                return;
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                window.calculationState.needed_channel = data.needed_channel
-            } else {
-                showError(data.error || 'Произошла ошибка при обработке запроса');
-            }
-        })
-        // Отправляем AJAX запрос 2
-        fetch('needed_channel/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                window.calculationState.needed_channel = data.needed_channel
-            } else {
-                showError(data.error || 'Произошла ошибка при обработке запроса');
-            }
-        })
-
-        .finally(() => {
-            // Скрываем спиннер
-            spinner.classList.add('d-none');
-            submitBtn.disabled = false;
+            
+            // Показываем индикатор загрузки
+            luoTaiyanResult.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>';
+            
+            // Отправляем AJAX запрос
+            fetch('/process-luo-taiyan/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    needed_channel: neededChannel
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    luoTaiyanResult.innerHTML = data.result;
+                } else {
+                    luoTaiyanResult.innerHTML = `<div class="alert alert-danger">Ошибка: ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                luoTaiyanResult.innerHTML = `<div class="alert alert-danger">Ошибка сети: ${error}</div>`;
+            });
         });
-
-    });
-});
-
-async function processLuoTaiyan(ui) {
-    const channel = ui.neededChannel.value;
-    if (!channel) return;
-
-    try {
-        const response = await fetch('get_luo_taiyan/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.csrfToken },
-            body: JSON.stringify({ channel })
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            window.calculationState.needed_channel = data;
-            ui.luoTaiyanResult.innerHTML = `<p>${data.result}</p>`;
-        } else {
-            alert('Ошибка (ДР): ' + data.error);
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('Произошла ошибка при отправке данных (ДР)');
     }
-}
+});

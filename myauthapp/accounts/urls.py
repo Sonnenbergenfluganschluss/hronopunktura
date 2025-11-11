@@ -1,11 +1,12 @@
 from django.urls import path, include
 from . import views
 from django.contrib.auth import views as auth_views
+from .for_views.calculate.process_luo_taiyan import process_luo_taiyan
 from .views import (
     home, index, 
     process_birthday, process_city, process_our_date, process_method, city_search,
     register, verify_email, profile, registration_sent, email_verified, 
-    verification_expired, invalid_verification, get_luo_taiyan,
+    verification_expired, invalid_verification,
 )
 
 urlpatterns = [ 
@@ -38,5 +39,5 @@ urlpatterns = [
      path('email-verified/', views.email_verified, name='email_verified'),
      path('verification-expired/', views.verification_expired, name='verification_expired'),
      path('invalid-verification/', views.invalid_verification, name='invalid_verification'),
-     path('get_luo_taiyan/', views.get_luo_taiyan, name='get_luo_taiyan'),
+     path('process-luo-taiyan/', process_luo_taiyan, name='process_luo_taiyan'),
 ]
