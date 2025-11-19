@@ -24,8 +24,8 @@ def get_moon_palace(our_date, vis_yaer):
     def image_formatter(im):
         return f'<img src="data:image/png; base64,{image_base64(im)}" style="width: 30%; display: block; margin: 0 auto;">'
 
-    path_yan = f'{settings.BASE_DIR}/accounts/data/images/yan.jpg'
-    path_in = f'{settings.BASE_DIR}/accounts/data/images/in.jpg'
+    path_yan = f'{settings.BASE_DIR}/data/images/yan.jpg'
+    path_in = f'{settings.BASE_DIR}/data/images/in.jpg'
 
     for k, v in moon_palace.items():
         if our_date.year in v:

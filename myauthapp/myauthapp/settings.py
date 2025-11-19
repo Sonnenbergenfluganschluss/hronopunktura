@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import idna 
-from django.utils.encoding import smart_str
+# from django.utils.encoding import smart_str
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
+    'application',
     'payments',
     'week_prediction',
 ]
@@ -131,9 +132,10 @@ USE_TZ = True
 if DEBUG:
     STATIC_URL = 'myauthapp/accounts/static/'
     STATICFILES_DIRS = [
-       BASE_DIR / "accounts",
+    #    BASE_DIR / "accounts",
        BASE_DIR / "payments",
        BASE_DIR / "week_prediction",
+       BASE_DIR / "application",
     ]
 else:
     STATIC_URL = 'myauthapp/staticfiles/static/'

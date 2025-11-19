@@ -46,13 +46,13 @@ birthqi = {
 }
 
 def read_csv_files(table):       
-    table_csv = pd.read_csv(f"{settings.BASE_DIR}/accounts/data/{table}.csv")
+    table_csv = pd.read_csv(f"{settings.BASE_DIR}/data/{table}.csv")
     return table_csv
 
 
 def read_csv(table):
     lsts = []
-    with open(f'{settings.BASE_DIR}/accounts/data/{table}.csv', encoding='utf-8') as file:
+    with open(f'{settings.BASE_DIR}/data/{table}.csv', encoding='utf-8') as file:
         reader = csv.reader(file)
         for row in reader:
             lsts.append(row)

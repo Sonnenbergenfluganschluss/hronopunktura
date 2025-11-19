@@ -11,7 +11,7 @@ current_channel_global = ""
 def get_luo_taiyan(current_channel, needed_channel):
     if len(current_channel) > 0:
         try:
-            df = pd.read_csv(str(settings.BASE_DIR) + '/accounts/data/luo_taiyan.csv', index_col='Unnamed: 0')
+            df = pd.read_csv(f'{settings.BASE_DIR}/data/luo_taiyan.csv', index_col='Unnamed: 0')
             result = df.loc[current_channel.lower(), needed_channel.lower()]
             return f"<div class='container'>Связь {current_channel} с каналом {needed_channel} через Luo-точки: {result}</div>"
         except Exception as e:
@@ -70,7 +70,7 @@ def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
             
 
     tai_yan_ba_fa = []
-    with open(f"{settings.BASE_DIR}/accounts/data/tai_yan_ba_fa/{file[0]}.csv", 'r', encoding='utf-8') as file:
+    with open(f"{settings.BASE_DIR}/data/tai_yan_ba_fa/{file[0]}.csv", 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
         for row in reader:
             tai_yan_ba_fa.append(row)

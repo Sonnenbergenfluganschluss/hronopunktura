@@ -6,7 +6,7 @@ from django.conf import settings
 
 
 def read_files(table_name):
-    with open(f"{settings.BASE_DIR}/accounts/data/{table_name}.json", encoding='utf-8') as f: # Открываем файл и связываем его с объектом "f"
+    with open(f"{settings.BASE_DIR}/data/{table_name}.json", encoding='utf-8') as f: # Открываем файл и связываем его с объектом "f"
         table = json.load(f)
     return table
 

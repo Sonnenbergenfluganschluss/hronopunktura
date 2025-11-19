@@ -19,4 +19,4 @@ def home(request):
         'cities_json': json.dumps(cit), 
         'methods': methods,
     }
-    return render(request, 'accounts/home.html', context)
+    return render(request, 'application/home.html', context)
