@@ -1,15 +1,11 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-# from django.http import JsonResponse  # если нужен AJAX
 from ..forms import RegisterForm, CustomUserChangeForm
 from ..models import CustomUser
-
 from payments.models import Tariff
-# from django.contrib.auth.models import User
 from django.template.loader import render_to_string
-# import uuid
-from django.core.mail import send_mail, EmailMessage
+from django.core.mail import EmailMessage
 from django.conf import settings
 
 

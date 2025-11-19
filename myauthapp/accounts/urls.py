@@ -2,6 +2,7 @@ from django.urls import path, include
 from . import views
 from django.contrib.auth import views as auth_views
 from .for_views.calculate.process_luo_taiyan import process_luo_taiyan
+
 from .views import (
     home, index, 
     process_birthday, process_city, process_our_date, process_method, city_search,

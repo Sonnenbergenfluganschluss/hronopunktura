@@ -13,11 +13,11 @@ def process_city(request):
         try:
             data = json.loads(request.body)
             city = data.get('city')
-            city = city.capitalize()
+            city = city#.capitalize()
+            # print(city)
             cit = [row["Город"] for row in cities]
             if city in cit:
                 row_cit = [row for row in cities if row["Город"]==city][0]
-
                 long = row_cit["Долгота"]
                 hours = int(long//15)
                 minutes = int(round((long/15 - hours)*60))
