@@ -1,7 +1,7 @@
 import csv
 from datetime import datetime
 from django.conf import settings
-from ...constants import color_dict, dolgoletie, skydoc, birthqi
+from ...constants import color_dict, dolgoletie, skydoc, birthqi, dict_tai
 from ...utils import highlight_words
 import pandas as pd
 
@@ -70,7 +70,7 @@ def get_taiyan(our_date, day_iero, CURRENT_TIME_SOLAR, headOfT, timeOfT):
             
 
     tai_yan_ba_fa = []
-    with open(f"{settings.BASE_DIR}/data/tai_yan_ba_fa/{file[0]}.csv", 'r', encoding='utf-8') as file:
+    with open(f"{settings.BASE_DIR}/data/tai_yan_ba_fa/{dict_tai[file[0]]}.csv", 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
         for row in reader:
             tai_yan_ba_fa.append(row)

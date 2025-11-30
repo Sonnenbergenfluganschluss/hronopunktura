@@ -8,4 +8,5 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('payments/', include('payments.urls')),
     path('week_prediction/', include('week_prediction.urls')),
+    path('subscription/', include('subscription.urls')),
 ]

@@ -27,12 +27,13 @@ def convert_idn_email(email):
 
 ASCII_EMAIL = convert_idn_email('email@хронопунктура.рф')
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
-# EMAIL_PORT = int(os.environ.get('EMAIL_PORT'))
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT'))
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'False').lower() == 'true'
 EMAIL_HOST_USER = ASCII_EMAIL
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
 
 
 ALLOWED_HOSTS = []
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
     'application',
     'payments',
     'week_prediction',
+    'subscription',
 ]
 
 MIDDLEWARE = [
